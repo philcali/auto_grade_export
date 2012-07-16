@@ -1,0 +1,8 @@
+!html
+
+html @lang="en"
+  head
+    css "css/bootstrap.css"
+  body
+    h1 "Hello"
+    p "Testing this out"
