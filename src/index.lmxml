@@ -2,7 +2,194 @@
 
 html @lang="en"
   head
-    css "css/bootstrap.css"
+    title "Philip Michael Cali"
+    css @href="css/bootstrap.css"
+    css ```
+.row {
+  padding-bottom: 5px;
+}
+
+.footer {
+  padding: 10px;
+  background-color: #eee;
+  text-align: center;
+}
+        ``` is unescaped
   body
-    h1 "Hello"
-    p "Testing this out"
+    >.container
+      section
+        >.page-header
+          h1 "Philip Michael Cali" small "philip.cali@gmail.com"
+        >.row
+          >.span5
+            img.thumbnail @src="/images/philip_head.png"
+          >.span7
+            p "Public profiles"
+            ul
+              li "on Github (https://github.com/philcali)"
+              li "on LinkedIn (http://www.linkedin.com/pub/philip-cali/13/a66/3b0)"
+              li "on Google + (https://plus.google.com/113131837340328695988/about)"
+      section
+        >.page-header
+          h2 "Education"
+        >.row
+          >.span5
+            h3 "Louisiana State University" small "2004-2008"
+            ul li "LSU (http://lsu.edu)"
+          >.span7
+            ul
+              li ```
+Obtained a bachelor's degree in Computer Science, with a concentration on
+Information Services and Decision Sciences (ISDS).
+                 ```
+              li "Graduated with a 3.5 GPA"
+      section
+        >.page-header
+          h2 "Experience"
+        >.row
+          >.span5
+            h3 "LSU Moodle Developer" small "June 2008 - Present"
+          >.span7
+            p ```
+Full time employee as a programming Analyst at LSU ITS. Primary duties involve
+working as the lone Moodle developer on the LSU Moodle instance.
+              ```
+            ul
+              li ```
+Architected the Moodle enrollment plugin called Universal Enrollment Service (UES).
+UES is a fully pluggable enrollment system with a black-box enrollment process.
+                 ```
+              li ```
+Built the Course Preferences System (CPS). CPS is a Moodle block that allows
+instructors assigned by the UES to modify the creation and enrollment process
+within some default boundaries.
+                 ```
+              li "Maintains the popular Moodle block: Quickmail."
+              li ```
+Directly involved in the creation of over 30 Moodle customized plugins
+run by LSU.
+                ```
+        >.row
+          >.span5
+            h3 "LSU Student Intern" small "December 2007 - June 2008"
+          >.span7
+            p ```
+Student intern in the UIS department of LSU ITS. Programmed primarily in PHP.
+Duties involved programming various blocks and plugins for LSU's instance of
+Moodle (http://moodle.org). Some of the blocks and plugins include the LSU
+gradebook and Simplified Restore.
+              ```
+        >.row
+          >.span5
+            h3 "LSU Student Worker" small "June 2007 - December 2007"
+          >.span7
+            p ```
+Student worker in the UIS department of LSU ITS. Programmed in Java. Duties
+involved researching portlet technology, and worked directly on the JIMS (Java
+to IMS) project. The project involved converting COBOL copybook programs into
+Java classes, which in turn were serialized into a byte array that is run on
+the mainframe.
+              ```
+      section
+        >.page-header
+          h2 "Knowledge"
+        >.row
+          >.span4
+            h3 "Programming / Markup Languages"
+            ul
+              li "Javascript"
+              li "PHP"
+              li "Scala"
+              li "Java"
+              li "Haskell"
+              li "Erlang"
+              li "Python"
+              li "HTML"
+              li "LMXML"
+              li "XML"
+              li "Markdown"
+              li "Relational SQL"
+          >.span3
+            h3 "Tool sets"
+            ul
+              li "Giti / SVN"
+              li "NodeJS"
+              li "MySQL / PostgreSQL / SQLite"
+              li "Apache 2"
+              li "vim"
+              li "GNU screen"
+              li "mosh / ssh"
+              li "Unix"
+              li "SBT"
+              li "ant"
+              li "Google Appengine / Heroku"
+              li "Omnigraph / dia"
+          >.span5
+            h3 "Methodologies"
+            ul
+              li "Strong object-oriented tendencies"
+              li "Automated testing and deployment"
+              li "Behavior driven development"
+              li "Strong understanding of the web (AJAX, web services ...)"
+              li "Rapid prototyping"
+              li "Graphing work-flow and documentation"
+              li "Desire to learn new patterns"
+      section
+        >.page-header
+          h2 "Notable Side Projects and Personal Studies"
+        >.row
+          >.span5
+            h3 "Robot Vision Control (RVC)"
+            p "http://philcali.github.com/robot-vision/"
+          >.span7
+            p ```
+Robot Vision Control (RVC) is a Scala embedded web server to allow secure
+remote control over a host machine. The client portion is pure HTML5. Chrome
+browsers and Chromebooks, can take advantage of the RVC Chrome extension to
+manage host URL's and quick secure connections.
+              ```
+        >.row
+          >.span5
+            h3 "Light Markup to XML (LMXML)"
+            p "http://try-lmxml.appspot.com/"
+          >.span7
+            p ```
+LMXML is a pluggable markup language design to quickly transpile into another
+recursive markup language. The library introduces a unique approach to
+template output. The idea being that all template languages are flawed at heart
+(programming language in the view), LMXML provides the ability to transform the
+view based on input functions.
+              ```
+        >.row
+          >.span5
+            h3 "Zap-It!"
+            p "http://zap-it.appspot.com"
+          >.span7
+            p ```
+Zap-It! is a Megaman style platformer that plays in the browser using Canvas 2D
+and Javascript. The game was a tribute to a fellow co-worker that resigned.
+What birthed from that is a library to quickly produce Megaman style games in
+the browser.
+              ```
+        >.row
+          >.span5
+            h3 "PHP Optional"
+            p "https://github.com/philcali/php-optional"
+          >.span7
+            p ```
+The PHP optional package aims at providing PHP with optional types and simple
+function composition. The package was originally created as a proof of concept
+that went hay-wire.
+              ```
+        >.row
+          >.span5
+            h3 "Cronish (Cron DSL)"
+            p "https://github.com/philcali/cronish#readme"
+          >.span7
+            p ```
+Cronish is a cron DSL to help a machine understand what we say in English for
+incremental syntax. For example, "every day at midnight" is a no longer a
+mystery to a machine.
+              ```
+      footer.footer
+        p "Made by Philip Cali"
