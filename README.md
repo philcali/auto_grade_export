@@ -1,6 +1,7 @@
-# My Resume
+# Auto Export Plugin
 
-This is my current, up-to-date resume.
+A Moodle block that handles grade exporting to a configurable external Oracle
+database.
 
 # Installation
 
