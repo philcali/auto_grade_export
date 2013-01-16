@@ -20,3 +20,6 @@ $string['password'] = 'Password';
 $string['password_desc'] = 'The password (if any) to authenticate with';
 
 // Query builder
+$string['externalid'] = 'External ID';
+$string['automated'] = 'Automated';
+$string['select_grade'] = 'Select a grade:';
