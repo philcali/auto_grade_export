@@ -1,0 +1,11 @@
+.query_table {
+  margin-top: 5px;
+  margin-bottom: 5px; }
+
+.query_table > table.generaltable {
+  text-align: center;
+  width: 70%;
+  margin: auto auto; }
+
+.query_table > table.generaltable .deleted {
+  color: #A00; }

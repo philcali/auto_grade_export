@@ -33,4 +33,18 @@ if ($ADMIN->fulltree) {
         $_s('password'),
         $_s('password_desc')
     ));
+
+    $settings->add(new admin_setting_configtext(
+        'block_up_grade_export/cron_target',
+        $_s('cron_target'),
+        $_s('cron_target_desc'),
+        '2 - 4'
+    ));
+
+    $settings->add(new admin_setting_configtext(
+        'block_up_grade_export/cron_interval',
+        $_s('cron_interval'),
+        $_s('cron_interval_desc'),
+        24 * 60 * 60
+    ));
 }

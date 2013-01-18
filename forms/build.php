@@ -10,6 +10,8 @@ class build_form extends moodleform {
     public function definition() {
         $m =& $this->_form;
 
+        $m->addElement('hidden', 'id', '');
+
         $label = get_string('externalid', 'block_up_grade_export');
         $m->addElement('text', 'externalid', $label);
 
@@ -39,6 +41,9 @@ class build_form extends moodleform {
         $grade_seq = $this->_customdata['grade_seq'];
 
         if ($grade_seq and $grade_seq->items) {
+            $label = get_string('clear_course', 'block_up_grade_export');
+            $m->addElement('checkbox', 'clear_course', $label, '');
+
             $structure = $this->_customdata['structure'];
             $struct_params = function ($item) {
                 return array('type' => 'item', 'object' => $item);
@@ -49,7 +54,12 @@ class build_form extends moodleform {
 
             foreach ($grade_seq->items as $grade_item) {
                 $grade_icon = $structure->get_element_icon($struct_params($grade_item));
-                $label = " $grade_icon{$grade_item->get_name()}";
+
+                $name = $grade_item->is_category_item() ?
+                    $grade_item->get_item_category()->get_name() :
+                    $grade_item->get_name();
+
+                $label = " $grade_icon{$name}";
 
                 $m->addElement('radio', 'itemid', '', $label, $grade_item->id);
             }
@@ -57,6 +67,8 @@ class build_form extends moodleform {
             $m->addElement('hidden', 'course', $course->id);
             $m->addRule('externalid', null, 'required', null, 'client');
             $m->setType('externalid', PARAM_MULTILANG);
+
+            $m->disabledIf('itemid', 'clear_course', 'checked');
         }
 
         $label = $grade_seq ? 'submit' : 'next';

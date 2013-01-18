@@ -8,4 +8,12 @@ $capabilities = array(
             'manager' => CAP_ALLOW,
         ),
     ),
+    'block/up_grade_export:canexport' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+        ),
+    ),
 );
