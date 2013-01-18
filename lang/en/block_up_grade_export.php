@@ -33,10 +33,15 @@ $string['cron_interval_desc'] = 'Set a cron interval in seconds.';
 // Query export
 $string['can_pull'] = 'Cannot pull grades for a non-existent grade item.';
 $string['export_to'] = 'Export {$a->name} to {$a->table}';
+$string['export_success'] = 'Successfully exported the grades';
+$string['export_failed'] = 'Export failed for {$a->fullname} with grade {$a->finalgrade}';
+$string['last_export'] = 'Last export occurred on <em>{$a->date}</em>: {$a->status}';
 
 // Query list
 $string['deleted'] = '(Deleted)';
-$stirng['no_queries'] = 'No queries created. Continue to create one.';
+$string['no_queries'] = 'No queries created. Continue to create one.';
+$string['query_failed'] = 'Query could not be saved';
+$string['query_delete_failed'] = 'Query could not be deleted';
 $string['query_updated'] = 'Query was successfully updated';
 $string['query_created'] = 'Query was successfully created';
 $string['query_deleted'] = 'Query was successfully deleted';

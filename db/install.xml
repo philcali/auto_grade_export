@@ -4,12 +4,35 @@
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="block_up_export_queries" COMMENT="Table that maps to an external oracle id">
+    <TABLE NAME="block_up_export_queries" COMMENT="Table that maps to an external oracle id" NEXT="block_up_export_history">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="itemid"/>
         <FIELD NAME="itemid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="externalid"/>
         <FIELD NAME="externalid" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" PREVIOUS="itemid" NEXT="automated"/>
         <FIELD NAME="automated" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" DEFAULT="0" PREVIOUS="externalid"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="block_up_export_history" COMMENT="Table that maps export intervals to queries" NEXT="block_up_export_items" PREVIOUS="block_up_export_queries">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="queryid"/>
+        <FIELD NAME="queryid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="timestamp"/>
+        <FIELD NAME="timestamp" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="queryid" NEXT="userid"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" PREVIOUS="timestamp" NEXT="success"/>
+        <FIELD NAME="success" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" PREVIOUS="userid"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="block_up_export_items" COMMENT="Table that maps an export interval to grades" PREVIOUS="block_up_export_history">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="historyid"/>
+        <FIELD NAME="historyid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="userid"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="historyid" NEXT="grade"/>
+        <FIELD NAME="grade" TYPE="number" LENGTH="10" NOTNULL="false" SEQUENCE="false" DECIMALS="5" COMMENT="If the grade is a float value (or has been converted to one)" PREVIOUS="userid"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" />

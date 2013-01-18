@@ -1,6 +1,7 @@
 <?php
 
 require_once '../../config.php';
+require_once 'classes/lib.php';
 
 require_login();
 
@@ -13,7 +14,7 @@ if (!has_capability('block/up_grade_export:canbuildquery', $context)) {
     print_error('no_permission', 'block_up_grade_export');
 }
 
-$query = $DB->get_record('block_up_export_queries', array('id' => $queryid));
+$query = query_connector::get(array('id' => $queryid));
 
 if (empty($query)) {
     print_error('no_query', 'block_up_grade_export');
@@ -37,8 +38,12 @@ $PAGE->set_title("$blockname: $heading");
 $PAGE->set_heading("$blockname: $heading");
 
 if ($confirm) {
-    $DB->delete_records('block_up_export_queries', array('id' => $queryid));
-    $SESSION->query_updated = 'query_deleted';
+
+    if ($query->delete()) {
+        $SESSION->query_updated = 'query_deleted';
+    } else {
+        $SESSION->query_failed = 'query_delete_failed';
+    }
 
     redirect($manage_url);
 }

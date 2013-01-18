@@ -1,5 +1,7 @@
 <?php
 
+require_once $CFG->dirroot . '/blocks/up_grade_export/classes/lib.php';
+
 /**
  * Entry point for the block display
  */
@@ -19,7 +21,7 @@ class block_up_grade_export extends block_list {
         return array(
             'site' => true,
             'my' => true,
-            'course' => false,
+            'course' => true,
         );
     }
 
@@ -55,12 +57,31 @@ class block_up_grade_export extends block_list {
             $content->footer = html_writer::link($url, get_string('settings'));
         }
 
+        $params = array('class' => 'icon');
+
         $context = $COURSE->id === SITEID ?
             get_context_instance(CONTEXT_SYSTEM) :
             get_context_instance(CONTEXT_COURSE, $COURSE->id);
 
+        if ($COURSE->id !== SITEID and has_capability('block/up_grade_export:canexport', $context)) {
+            $queries = query_connector::find_by_course($COURSE);
+
+            foreach ($queries as $query) {
+                $args = array('id' => $query->id, 'courseid' => $COURSE->id);
+                $url = new moodle_url('/blocks/up_grade_export/export.php', $args);
+
+                $a = new stdClass;
+                $a->name = $query->get_grade_item()->get_name();
+                $a->table = 'Banner';
+
+                $str = get_string('export_to', 'block_up_grade_export', $a);
+
+                $content->items[] = html_writer::link($url, $str);
+                $content->icons[] = $OUTPUT->pix_icon('i/backup', $str, 'moodle', $params);
+            }
+        }
+
         if (has_capability('block/up_grade_export:canbuildquery', $context)) {
-            $params = array('class' => 'icon');
 
             if ($DB->count_records('block_up_export_queries')) {
                 $url = new moodle_url('/blocks/up_grade_export/list.php');
@@ -128,14 +149,29 @@ class block_up_grade_export extends block_list {
             return false;
         }
 
-        require_once $CFG->dirroot . '/blocks/up_grade_export/classes/lib.php';
-
+        $emaillog = array();
         $queries = query_connector::get_all(array('automated' => true));
 
         foreach ($queries as $query) {
-            $grade_item = $query->get_grade_item();
+            if (!$query->can_pull_grades()) {
+                $emaillog[] = "Query {$query->get_external_name()} for can find itemid {$query->itemid}";
+                continue;
+            }
 
-            mtrace("Run query {$query->externalid} on {$grade_item->get_name()}");
+            $connection = new oracle_connection($query->get_external_name());
+
+            $errors = $query->export_grades($connection);
+            if ($errors) {
+                $emaillog[] = sprintf("Query on %s failed for %s on course %d: %d", $query->get_external_name(), $query->get_grade_item()->get_name(), $query->get_course()->shortname, count($errors));
+            }
+        }
+
+        if ($emaillog) {
+            $body = implode("\n", $emaillog);
+            $admins = get_admins();
+            foreach ($admins as $admin) {
+                email_to_user($admin, $CFG->noreplyaddress, 'UP grade export: ERRORS', $body);
+            }
         }
 
         return true;

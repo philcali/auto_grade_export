@@ -31,6 +31,11 @@ if (isset($SESSION->query_updated)) {
     echo $OUTPUT->notification($label, 'notifysuccess');
 
     unset($SESSION->query_updated);
+} else if (isset($SESSION->query_failed)) {
+    $label = get_string($SESSION->query_failed, 'block_up_grade_export');
+    echo $OUTPUT->notification($label);
+
+    unset($SESSION->query_failed);
 }
 
 $query_count = $DB->count_records('block_up_export_queries');
@@ -39,10 +44,9 @@ $queries = $DB->get_records('block_up_export_queries', null, 'externalid DESC', 
 $build_url = new moodle_url('/blocks/up_grade_export/build.php');
 
 if (empty($query_count)) {
-    echo $OUTPUT->notification(get_string('no_queries', 'block_up_export_queries'));
+    echo $OUTPUT->notification(get_string('no_queries', 'block_up_grade_export'));
 
     echo $OUTPUT->continue_button($build_url);
-
     echo $OUTPUT->footer();
     exit;
 }
@@ -106,14 +110,15 @@ $table->head = array(
     get_string('action'),
 );
 
+$automated_icon = $OUTPUT->pix_icon('i/completion-manual-enabled', '', 'moodle', array('class' => 'icon'));
+$manual_icon = $OUTPUT->pix_icon('i/completion-manual-n', '', 'moodle', array('class' => 'icon'));
+
 foreach ($queries as $query) {
     $grade_item = grade_item::fetch(array('id' => $query->itemid));
 
     $line = array();
     $line[] = $edit_link($query, $query->externalid);
-    $line[] = html_writer::checkbox('automated', 1, $query->automated, '', array(
-      'disabled' => disabled,
-    ));
+    $line[] = $query->automated ? $automated_icon : $manual_icon;
     $line[] = $grade_item ? $course_link($grade_item) : $deleted_str;
     $line[] = $grade_item ? $grade_link($grade_item) : $deleted_str;
     $line[] = ($grade_item ? $export_link($query) : $export_icon) . ' '

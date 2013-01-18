@@ -2,12 +2,12 @@
 
 require_once '../../config.php';
 require_once 'forms/build.php';
+require_once 'classes/lib.php';
 require_once $CFG->libdir . '/gradelib.php';
 
 require_login();
 
 $queryid = optional_param('id', null, PARAM_INT);
-$courseid = optional_param('fromid', SITEID, PARAM_INT);
 $shortname = optional_param('shortname', '', PARAM_TEXT);
 $selected_course = optional_param('course', 0, PARAM_INT);
 $clear_course = optional_param('clear_course', 0, PARAM_INT);
@@ -15,22 +15,20 @@ $clear_course = optional_param('clear_course', 0, PARAM_INT);
 $page = optional_param('page', 0, PARAM_INT);
 $perpage = optional_param('perpage', 10, PARAM_INT);
 
-$context = $courseid === SITEID ?
-    get_context_instance(CONTEXT_SYSTEM) :
-    get_context_instance(CONTEXT_COURSE, $courseid);
+$context = get_context_instance(CONTEXT_SYSTEM);
 
 if (!has_capability('block/up_grade_export:canbuildquery', $context)) {
     print_error('no_permission', 'block_up_grade_export');
 }
 
 if ($queryid) {
-    $query = $DB->get_record('block_up_export_queries', array('id' => $queryid));
+    $query = query_connector::get(array('id' => $queryid));
 
     if (empty($query)) {
         print_error('no_query', 'block_up_grade_export');
     }
 
-    $grade_item = grade_item::fetch(array('id' => $query->itemid));
+    $grade_item = $query->get_grade_item();
 
     if ($grade_item) {
         $selected_course = $grade_item->courseid;
@@ -100,25 +98,22 @@ if ($query) {
 }
 
 if ($form->is_cancelled()) {
-    $url = $courseid === SITEID ?
-        new moodle_url('/blocks/up_grade_export/list.php') :
-        new moodle_url('/course/view.php', array('id' => $courseid));
+    $url = new moodle_url('/blocks/up_grade_export/list.php');
 
     redirect($url);
 } else if ($data = $form->get_data()) {
 
     if ($data->itemid) {
-        $query = $query ?: new stdClass;
-        $query->itemid = $data->itemid;
-        $query->externalid = $data->externalid;
-        $query->automated = $data->automated ?: false;
+        $query = new query_connector($data);
 
-        if ($data->id) {
-            $SESSION->query_updated = 'query_updated';
-            $DB->update_record('block_up_export_queries', $query);
-        } else {
+        $success = $query->save($created);
+
+        if ($success and $created) {
             $SESSION->query_updated = 'query_created';
-            $DB->insert_record('block_up_export_queries', $query);
+        } else if ($success) {
+            $SESSION->query_updated = 'query_updated';
+        } else {
+            $SESSION->query_failed = 'query_failed';
         }
 
         redirect(new moodle_url('/blocks/up_grade_export/list.php'));

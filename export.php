@@ -8,6 +8,7 @@ require_login();
 
 $queryid = required_param('id', PARAM_INT);
 $courseid = optional_param('courseid', 0, PARAM_INT);
+$export = optional_param('export', 0, PARAM_INT);
 
 $context = empty($courseid) ?
     get_context_instance(CONTEXT_SYSTEM) :
@@ -30,9 +31,21 @@ $heading = get_string('export', 'block_up_grade_export');
 
 $PAGE->set_context($context);
 $PAGE->navbar->add($blockname);
-$PAGE->navbar->add($heading);
 $PAGE->set_title("$blockname: $heading");
 $PAGE->set_heading("$blockname: $heading");
+
+if ($courseid) {
+    $back_url = new moodle_url('/course/view.php', array('id' => $courseid));
+    $course = $DB->get_record('course', array('id' => $courseid));
+
+    $PAGE->set_course($course);
+} else {
+    $back_url = new moodle_url('/blocks/up_grade_export/list.php');
+
+    $PAGE->navbar->add(get_string('list_queries', 'block_up_grade_export'), $back_url);
+}
+
+$PAGE->navbar->add($heading);
 
 if (!$query->can_pull_grades()) {
     echo $OUTPUT->header();
@@ -43,6 +56,8 @@ if (!$query->can_pull_grades()) {
     if ($can_build) {
         $build_url = new moodle_url('/blocks/up_grade_export/build.php', array('id' => $query));
         echo $OUTPUT->continue_button($build_url);
+    } else {
+        echo $OUTPUT->continue_button($back_url);
     }
 
     echo $OUTPUT->footer();
@@ -58,6 +73,41 @@ $heading_str = get_string('export_to', 'block_up_grade_export', $a);
 echo $OUTPUT->header();
 echo $OUTPUT->heading($heading_str);
 
+if ($export) {
+    $connection = new oracle_connection($query->get_external_name());
+
+    $errors = $query->export_grades($connection, $USER->id);
+    if (empty($errors)) {
+        echo $OUTPUT->notification(get_string('export_success', 'block_up_grade_export'), 'notifysuccess');
+    } else {
+        $users = $query->pull_users();
+        foreach ($errors as $error) {
+            $user = $users[$error->userid];
+            $error->fullname = fullname($user);
+
+            echo $OUTPUT->notification(get_string('export_failed', 'block_up_grade_export', $error));
+        }
+    }
+
+    echo $OUTPUT->continue_button($back_url);
+    echo $OUTPUT->footer();
+    exit;
+}
+
+if ($last_export = $query->get_last_export()) {
+    $a = new stdClass;
+    $a->date = userdate($last_export->timestamp);
+    $a->status = $last_export->success ? 'Success' : 'Failed';
+
+    $str = get_string('last_export', 'block_up_grade_export', $a);
+
+    if ($last_export->success) {
+        echo $OUTPUT->notification($str, 'notifysuccess');
+    } else {
+        echo $OUTPUT->notification($str);
+    }
+}
+
 list($users, $grades) = $query->pull_user_grades();
 
 $table = new html_table();
@@ -65,9 +115,16 @@ $table->head = array(
   '',
   get_string('lastname') . ' / ' . get_string('firstname'),
   get_string('grade', 'grades'),
+  get_string('status'),
 );
 
 $grade_item = $query->get_grade_item();
+
+if ($last_export) {
+    $exported = $query->get_exported_items($last_export);
+}
+
+$exported_icon = $OUTPUT->pix_icon('i/completion-manual-enabled', '', 'moodle', array('class' => 'icon'));
 
 foreach ($grades as $grade) {
     $user = $users[$grade->userid];
@@ -82,11 +139,30 @@ foreach ($grades as $grade) {
     $line[] = html_writer::link($user_link, "$user->lastname, $user->firstname");
     $line[] = grade_format_gradevalue($grade->finalgrade, $grade_item, true, $grade_item->get_displaytype());
 
+    if (empty($exported[$user->id])) {
+        $line[] = 'NA';
+    } else if ($exported[$user->id]->grade != (float) $grade->finalgrade) {
+        $display = grade_format_gradevalue($exported[$user->id]->grade, $grade_item, true, $grade_item->get_displaytype());
+        $line[] = html_writer::tag('span', "Changed from $display", array('class' => 'error'));
+    } else {
+        $line[] = $exported_icon;
+    }
+
     $table->data[] = new html_table_row($line);
 }
+
+$export_url = new moodle_url(basename(__FILE__), array(
+    'id' => $queryid,
+    'courseid' => $courseid,
+    'export' => 1,
+));
+
+$export_query_button = new single_button($export_url, $heading);
+$export_query_button->class = 'continuebutton';
 
 echo html_writer::start_tag('div', array('class' => 'query_table'));
 echo html_writer::table($table);
 echo html_writer::end_tag('div');
+echo $OUTPUT->render($export_query_button);
 
 echo $OUTPUT->footer();
