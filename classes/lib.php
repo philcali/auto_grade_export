@@ -5,11 +5,11 @@ require_once $CFG->dirroot . '/blocks/up_grade_export/classes/connection.php';
 
 /**
  * Class wrapper containing convenience methods for a single
- * query entity
+ * export entity
  */
-class query_connector {
+class query_exporter {
     public $id;
-    public $externalid;
+    public $query;
     public $itemid;
     public $automated;
 
@@ -24,37 +24,37 @@ class query_connector {
     public static function find_by_course($course) {
         global $DB;
 
-        $sql = 'SELECT query.*
-          FROM {block_up_export_queries} query,
+        $sql = 'SELECT export.*
+          FROM {block_up_export_exports} export,
                {course} c,
                {grade_items} gi
-          WHERE gi.id = query.itemid AND gi.courseid = c.id
-            AND c.id = :id AND query.automated = 0';
+          WHERE gi.id = export.itemid AND gi.courseid = c.id
+            AND c.id = :id AND export.automated = 0';
 
         $dbs = $DB->get_records_sql($sql, array('id' => $course->id));
 
         $return = array();
         foreach ($dbs as $db) {
-            $return[$db->id] = new query_connector($db);
+            $return[$db->id] = new query_exporter($db);
         }
 
         return $return;
     }
 
     /**
-     * Gets all the queries matching these params
+     * Gets all the export matching these params
      *
      * @param array $params
-     * @return array query_connector
+     * @return array query_exporter
      */
     public static function get_all(array $params = null) {
         global $DB;
 
-        $queries = $DB->get_records('block_up_export_queries', $params);
+        $exports = $DB->get_records('block_up_export_exports', $params);
 
         $return = array();
-        foreach ($queries as $query) {
-            $return[$query->id] = new query_connector($query);
+        foreach ($exports as $export) {
+            $return[$export->id] = new query_exporter($export);
         }
 
         return $return;
@@ -71,26 +71,26 @@ class query_connector {
     }
 
     /**
-     * Takes a query from the DB
+     * Takes an export from the DB
      */
     public function __construct($db_item) {
         $this->id = $db_item->id ?: null;
-        $this->externalid = $db_item->externalid ?: null;
+        $this->queryid = $db_item->queryid ?: null;
         $this->itemid = $db_item->itemid ?: null;
         $this->automated = isset($db_item->automated) ? $db_item->automated : false;
     }
 
     /**
-     * Returns the external name of this query
+     * Returns the external name of this export
      *
      * @return string
      */
     public function get_external_name() {
-        return $this->externalid;
+        return $this->get_query()->get_name();
     }
 
     /**
-     * Is this query automated?
+     * Is this export automated?
      *
      * @return boolean
      */
@@ -99,7 +99,7 @@ class query_connector {
     }
 
     /**
-     * Gets the grade_item associated with this query
+     * Gets the grade_item associated with this export
      *
      * @return grade_item | null
      */
@@ -130,7 +130,7 @@ class query_connector {
     }
 
     /**
-     * Checks whether or not this query can pull grades from Moodle
+     * Checks whether or not this export can pull grades from Moodle
      *
      * @return boolean
      */
@@ -141,7 +141,7 @@ class query_connector {
 
     /**
      * Pulls the gradable users with their grades in
-     * the course associated with this query
+     * the course associated with this export
      *
      * @return array (array $users, array $grades)
      */
@@ -150,7 +150,7 @@ class query_connector {
     }
 
     /**
-     * Pulls the gradeable users in the course associated with this query
+     * Pulls the gradeable users in the course associated with this export
      *
      * @return array stdClass
      */
@@ -173,7 +173,7 @@ class query_connector {
     }
 
     /**
-     * Pulls grades associated with the grade items associated with the query
+     * Pulls grades associated with the grade items associated with the export
      *
      * @return array stdClass
      */
@@ -194,7 +194,7 @@ class query_connector {
     }
 
     /**
-     * Simple wrapper around moodle DB and publishes query events
+     * Simple wrapper around moodle DB and publishes export events
      *
      * @param boolean $created
      * @return boolean
@@ -207,8 +207,8 @@ class query_connector {
             $created = true;
 
             try {
-                $this->id = $DB->insert_record('block_up_export_queries', $this);
-                events_trigger('query_created', $this);
+                $this->id = $DB->insert_record('block_up_export_exports', $this);
+                events_trigger('export_created', $this);
             } catch (Exception $e) {
                 return false;
             }
@@ -216,12 +216,12 @@ class query_connector {
             $created = false;
 
             $data = new stdClass;
-            $data->old_query = query_connector::get(array('id' => $this->id));
-            $data->new_query = $this;
+            $data->old_export = query_connector::get(array('id' => $this->id));
+            $data->new_export = $this;
 
             try {
-                $DB->update_record('block_up_export_queries', $this);
-                events_trigger('query_updated', $data);
+                $DB->update_record('block_up_export_exports', $this);
+                events_trigger('export_updated', $data);
             } catch (Exception $e) {
                 return false;
             }
@@ -231,7 +231,7 @@ class query_connector {
     }
 
     /**
-     * Simple wrapper around moodle DB and publishes query events
+     * Simple wrapper around moodle DB and publishes export events
      *
      * @return boolean
      */
@@ -239,8 +239,8 @@ class query_connector {
         global $DB;
 
         try {
-            events_trigger('query_deleted', $this);
-            return $DB->delete_records('block_up_export_queries', array('id' => $this->id));
+            events_trigger('export_deleted', $this);
+            return $DB->delete_records('block_up_export_exports', array('id' => $this->id));
         } catch (Exception $e) {
             return false;
         }
@@ -264,12 +264,12 @@ class query_connector {
     }
 
     /**
-     * Wipes the export history for this query
+     * Wipes the export history for this export
      */
     public function wipe_history() {
         global $DB;
 
-        $exports = $DB->get_records('block_up_export_history', array('queryid' => $this->id));
+        $exports = $DB->get_records('block_up_export_history', array('exportid' => $this->id));
 
         $historyids = implode(',', array_keys($exports));
 
@@ -292,7 +292,7 @@ class query_connector {
         list($users, $grades) = $this->pull_user_grades();
 
         $data = new stdClass;
-        $data->query = $this;
+        $data->export = $this;
         $data->users = $users;
         $data->grades = $grades;
 
@@ -328,7 +328,7 @@ class query_connector {
             return $data;
         });
 
-        $data->query = $this;
+        $data->export = $this;
         $data->userid = $userid;
 
         events_trigger('exported_grades', $data);

@@ -64,14 +64,14 @@ class block_up_grade_export extends block_list {
             get_context_instance(CONTEXT_COURSE, $COURSE->id);
 
         if ($COURSE->id !== SITEID and has_capability('block/up_grade_export:canexport', $context)) {
-            $queries = query_connector::find_by_course($COURSE);
+            $exports = query_exporter::find_by_course($COURSE);
 
-            foreach ($queries as $query) {
-                $args = array('id' => $query->id, 'courseid' => $COURSE->id);
+            foreach ($exports as $export) {
+                $args = array('id' => $export->id, 'courseid' => $COURSE->id);
                 $url = new moodle_url('/blocks/up_grade_export/export.php', $args);
 
                 $a = new stdClass;
-                $a->name = $query->get_grade_item()->get_name();
+                $a->name = $export->get_grade_item()->get_name();
                 $a->table = 'Banner';
 
                 $str = get_string('export_to', 'block_up_grade_export', $a);
@@ -83,19 +83,35 @@ class block_up_grade_export extends block_list {
 
         if (has_capability('block/up_grade_export:canbuildquery', $context)) {
 
-            if ($DB->count_records('block_up_export_queries')) {
-                $url = new moodle_url('/blocks/up_grade_export/list.php');
-                $str = get_string('list_queries', 'block_up_grade_export');
-
-                $content->items[] = html_writer::link($url, $str);
-                $content->icons[] = $OUTPUT->pix_icon('i/settings', $str, 'moodle', $params);
-            }
-
             $url = new moodle_url('/blocks/up_grade_export/build.php');
             $str = get_string('build_query', 'block_up_grade_export');
 
             $content->items[] = html_writer::link($url, $str);
             $content->icons[] = $OUTPUT->pix_icon('i/settings', $str, 'moodle', $params);
+
+            if ($DB->count_records('block_up_export_queries')) {
+                $url = new moodle_url('/blocks/up_grade_export/build_export.php');
+                $str = get_string('build_export', 'block_up_grade_export');
+
+                $content->items[] = html_writer::link($url, $str);
+                $content->icons[] = $OUTPUT->pix_icon('i/settings', $str, 'moodle', $params);
+
+                $url = new moodle_url('/blocks/up_grade_export/list.php');
+                $str = get_string('list_queries', 'block_up_grade_export');
+
+                $content->items[] = html_writer::link($url, $str);
+                $content->icons[] = $OUTPUT->pix_icon('i/settings', $str, 'moodle', $params);
+
+                if ($DB->count_records('block_up_export_exports')) {
+                    $url = new moodle_url('/blocks/up_grade_export/list_exports.php');
+                    $str = get_string('list_exports', 'block_up_grade_export');
+
+                    $content->items[] = html_writer::link($url, $str);
+                    $content->icons[] = $OUTPUT->pix_icon('i/settings', $str, 'moodle', $params);
+                }
+
+            }
+
         }
 
         $this->content = $content;

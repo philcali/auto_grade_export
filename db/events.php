@@ -10,6 +10,8 @@ $to_handlers = function($event) {
 
 $events = array(
     'exported_grades',
+    'export_updated',
+    'export_deleted',
     'query_deleted',
     'query_updated',
 );

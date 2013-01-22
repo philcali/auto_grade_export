@@ -13,7 +13,7 @@ abstract class up_grade_handler {
         global $DB;
 
         $history = new stdClass;
-        $history->queryid = $data->query->id;
+        $history->exportid = $data->export->id;
         $history->success = empty($data->errors);
         $history->timestamp = time();
         $history->userid = $data->userid ?: null;
@@ -33,24 +33,24 @@ abstract class up_grade_handler {
     }
 
     /**
-     * Cleans up history table upon query deletion
+     * Cleans up history table upon export deletion
      *
      * @param query_connector $query
      */
-    public static function query_deleted($query) {
-        $query->wipe_history();
+    public static function export_deleted($export) {
+        $export->wipe_history();
         return true;
     }
 
     /**
-     * Cleans up history if the query itemid changed
+     * Cleans up history if the export changed
      *
-     * @param mixed $data {old_query, new_query}
+     * @param mixed $data {old_export, new_export}
      */
-    public static function query_updated($data) {
-        if ($data->old_query->itemid != $data->new_query->itemid or
-            $data->old_query->externalid != $data->new_query->externalid)  {
-            $data->old_query->wipe_history();
+    public static function export_updated($data) {
+        if ($data->old_export->itemid != $data->new_export->itemid or
+            $data->old_export->queryid != $data->new_export->queryid)  {
+            $data->old_export->wipe_history();
         }
 
         return true;

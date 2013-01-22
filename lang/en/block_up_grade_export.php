@@ -4,8 +4,10 @@ $string['pluginname'] = 'Grade export';
 $string['pluginname_desc'] = 'This plugin will export grades from an external Oracle database from custom queries';
 
 // Block Strings
-$string['build_query'] = 'Build query';
+$string['build_query'] = 'Create query';
 $string['list_queries'] = 'Manage queries';
+$string['build_export'] = 'Create export';
+$string['list_exports'] = 'Manage exports';
 $string['delete_query'] = 'Delete query';
 $string['export'] = 'Export grades';
 $string['no_permission'] = 'You do not have permission to build an export query';
