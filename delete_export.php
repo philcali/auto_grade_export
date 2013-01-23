@@ -5,7 +5,7 @@ require_once 'classes/lib.php';
 
 require_login();
 
-$queryid = required_param('id', PARAM_INT);
+$exportid = required_param('id', PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_INT);
 
 $context = get_context_instance(CONTEXT_SYSTEM);
@@ -14,20 +14,20 @@ if (!has_capability('block/up_grade_export:canbuildquery', $context)) {
     print_error('no_permission', 'block_up_grade_export');
 }
 
-$query = oracle_query::get(array('id' => $queryid));
+$export = query_exporter::get(array('id' => $exportid));
 
-if (empty($query)) {
-    print_error('no_query', 'block_up_grade_export');
+if (empty($export)) {
+    print_error('no_export', 'block_up_grade_export');
 }
 
 $blockname = get_string('pluginname', 'block_up_grade_export');
-$heading = get_string('delete_query', 'block_up_grade_export');
+$heading = get_string('delete_export', 'block_up_grade_export');
 
-$build_str = get_string('build_query', 'block_up_grade_export');
-$build_url = new moodle_url('/blocks/up_grade_export/build.php', array('id' => $queryid));
+$build_str = get_string('build_export', 'block_up_grade_export');
+$build_url = new moodle_url('/blocks/up_grade_export/build_export.php', array('id' => $exportid));
 
 $manage_str = get_string('list_queries', 'block_up_grade_export');
-$manage_url = new moodle_url('/blocks/up_grade_export/list.php');
+$manage_url = new moodle_url('/blocks/up_grade_export/list_exports.php');
 
 $PAGE->set_context($context);
 $PAGE->navbar->add($blockname);
@@ -39,10 +39,10 @@ $PAGE->set_heading("$blockname: $heading");
 
 if ($confirm) {
 
-    if ($query->delete()) {
-        $SESSION->query_updated = 'query_deleted';
+    if ($export->delete()) {
+        $SESSION->export_updated = 'export_deleted';
     } else {
-        $SESSION->query_failed = 'query_delete_failed';
+        $SESSION->export_failed = 'export_delete_failed';
     }
 
     redirect($manage_url);
@@ -53,7 +53,7 @@ echo $OUTPUT->heading($heading);
 
 $confirm_str = get_string('delete_confirm', 'block_up_grade_export');
 $confirm_url = new moodle_url(basename(__FILE__), array(
-    'id' => $queryid,
+    'id' => $exportid,
     'confirm' => true,
 ));
 

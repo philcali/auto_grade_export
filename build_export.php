@@ -1,13 +1,13 @@
 <?php
 
 require_once '../../config.php';
-require_once 'forms/build.php';
+require_once 'forms/build_export.php';
 require_once 'classes/lib.php';
-require_once $CFG->libdir . '/gradelib.php';
 
 require_login();
 
-$queryid = optional_param('id', null, PARAM_INT);
+$exportid = optional_param('id', null, PARAM_INT);
+$queryid = optional_param('queryid', null, PARAM_INT);
 $shortname = optional_param('shortname', '', PARAM_TEXT);
 $selected_course = optional_param('course', 0, PARAM_INT);
 $clear_course = optional_param('clear_course', 0, PARAM_INT);
@@ -21,27 +21,37 @@ if (!has_capability('block/up_grade_export:canbuildquery', $context)) {
     print_error('no_permission', 'block_up_grade_export');
 }
 
-if ($queryid) {
-    $query = query_connector::get(array('id' => $queryid));
+if ($exportid) {
+    $export = query_exporter::get(array('id' => $exportid));
 
-    if (empty($query)) {
-        print_error('no_query', 'block_up_grade_export');
+    if (empty($export)) {
+        print_error('no_export', 'block_up_grade_export');
     }
 
-    $grade_item = $query->get_grade_item();
+    $grade_item = $export->get_grade_item();
 
     if ($grade_item) {
         $selected_course = $grade_item->courseid;
     }
+
+    if ($queryid) {
+        $export->queryid = $queryid;
+    }
 }
 
 $blockname = get_string('pluginname', 'block_up_grade_export');
-$heading = get_string('build_query', 'block_up_grade_export');
-$manage_str = get_string('list_queries', 'block_up_grade_export');
+$heading = get_string('build_export', 'block_up_grade_export');
+
+$manage_queries = get_string('list_queries', 'block_up_grade_export');
+$manage_query_url = new moodle_url('/blocks/up_grade_export/list.php');
+
+$manage_str = get_string('list_exports', 'block_up_grade_export');
+$manage_url = new moodle_url('/blocks/up_grade_export/list_exports.php');
 
 $PAGE->set_context($context);
 $PAGE->navbar->add($blockname);
-$PAGE->navbar->add($manage_str, new moodle_url('/blocks/up_grade_export/list.php'));
+$PAGE->navbar->add($manage_queries, $manage_query_url);
+$PAGE->navbar->add($manage_str, $manage_url);
 $PAGE->navbar->add($heading);
 $PAGE->set_title("$blockname: $heading");
 $PAGE->set_heading("$blockname: $heading");
@@ -61,11 +71,11 @@ if ($shortname) {
         $course = current($courses);
         unset($courses);
     } else {
-        $base_url = new moodle_url('/blocks/up_grade_export/build.php');
+        $base_url = new moodle_url('/blocks/up_grade_export/build_export.php');
         $pagination = $OUTPUT->paging_bar($course_count, $page, $perpage, $base_url);
     }
 
-    unset($query->itemid);
+    unset($export->itemid);
 }
 
 if ($selected_course) {
@@ -85,7 +95,7 @@ if ($course) {
     $grade_seq = new grade_seq($course->id, true);
 }
 
-$form = new build_form(basename(__FILE__), array(
+$form = new build_export_form(basename(__FILE__), array(
     'course' => $course,
     'courses' => $courses,
     'pagination' => $pagination,
@@ -93,30 +103,32 @@ $form = new build_form(basename(__FILE__), array(
     'structure' => $structure,
 ));
 
-if ($query) {
-    $form->set_data($query);
+if ($export) {
+    $form->set_data($export);
+} else if ($queryid) {
+    $form->set_data(array('queryid' => $queryid));
 }
 
 if ($form->is_cancelled()) {
-    $url = new moodle_url('/blocks/up_grade_export/list.php');
+    $url = new moodle_url('/blocks/up_grade_export/list_exports.php');
 
     redirect($url);
 } else if ($data = $form->get_data()) {
 
     if ($data->itemid) {
-        $query = new query_connector($data);
+        $export = new query_exporter($data);
 
-        $success = $query->save($created);
+        $success = $export->save($created);
 
         if ($success and $created) {
-            $SESSION->query_updated = 'query_created';
+            $SESSION->export_updated = 'export_created';
         } else if ($success) {
-            $SESSION->query_updated = 'query_updated';
+            $SESSION->export_updated = 'export_updated';
         } else {
-            $SESSION->query_failed = 'query_failed';
+            $SESSION->export_failed = 'export_save_failed';
         }
 
-        redirect(new moodle_url('/blocks/up_grade_export/list.php'));
+        redirect(new moodle_url('/blocks/up_grade_export/list_exports.php'));
     }
 }
 

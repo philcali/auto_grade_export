@@ -20,9 +20,13 @@ if (!has_capability('block/up_grade_export:canexport', $context)) {
     print_error('no_permission', 'block_up_grade_export');
 }
 
-$query = query_connector::get(array('id' => $queryid));
+$query = query_exporter::get(array('id' => $queryid));
 
 if (empty($query)) {
+    print_error('no_export', 'block_up_grade_export');
+}
+
+if (!$query->get_query()) {
     print_error('no_query', 'block_up_grade_export');
 }
 
@@ -40,7 +44,7 @@ if ($courseid) {
 
     $PAGE->set_course($course);
 } else {
-    $back_url = new moodle_url('/blocks/up_grade_export/list.php');
+    $back_url = new moodle_url('/blocks/up_grade_export/list_exports.php');
 
     $PAGE->navbar->add(get_string('list_queries', 'block_up_grade_export'), $back_url);
 }
@@ -54,7 +58,7 @@ if (!$query->can_pull_grades()) {
     echo $OUTPUT->notification(get_string('can_pull', 'block_up_grade_export'));
 
     if ($can_build) {
-        $build_url = new moodle_url('/blocks/up_grade_export/build.php', array('id' => $query));
+        $build_url = new moodle_url('/blocks/up_grade_export/build_export.php', array('id' => $query));
         echo $OUTPUT->continue_button($build_url);
     } else {
         echo $OUTPUT->continue_button($back_url);
@@ -66,7 +70,7 @@ if (!$query->can_pull_grades()) {
 
 $a = new stdClass;
 $a->name = "{$query->get_course()->shortname}: {$query->get_grade_item()->get_name()}";
-$a->table = $query->get_external_name();
+$a->table = $query->get_query()->get_name();
 
 $heading_str = get_string('export_to', 'block_up_grade_export', $a);
 
@@ -74,7 +78,7 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading($heading_str);
 
 if ($export) {
-    $connection = new oracle_connection($query->get_external_name());
+    $connection = $query->get_query();
 
     $errors = $query->export_grades($connection, $USER->id);
     if (empty($errors)) {

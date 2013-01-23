@@ -1,7 +1,7 @@
 <?php
 
 require_once '../../config.php';
-require_once $CFG->libdir . '/gradelib.php';
+require_once 'classes/lib.php';
 
 require_login();
 
@@ -15,10 +15,14 @@ if (!has_capability('block/up_grade_export:canbuildquery', $context)) {
 }
 
 $blockname = get_string('pluginname', 'block_up_grade_export');
-$heading = get_string('list_queries', 'block_up_grade_export');
+$heading = get_string('list_exports', 'block_up_grade_export');
+
+$manage_queries = get_string('list_queries', 'block_up_grade_export');
+$manage_url = new moodle_url('/blocks/up_grade_export/list.php');
 
 $PAGE->set_context($context);
 $PAGE->navbar->add($blockname);
+$PAGE->navbar->add($manage_queries, $manage_url);
 $PAGE->navbar->add($heading);
 $PAGE->set_title("$blockname: $heading");
 $PAGE->set_heading("$blockname: $heading");
@@ -26,25 +30,25 @@ $PAGE->set_heading("$blockname: $heading");
 echo $OUTPUT->header();
 echo $OUTPUT->heading($heading);
 
-if (isset($SESSION->query_updated)) {
-    $label = get_string($SESSION->query_updated, 'block_up_grade_export');
+if (isset($SESSION->export_updated)) {
+    $label = get_string($SESSION->export_updated, 'block_up_grade_export');
     echo $OUTPUT->notification($label, 'notifysuccess');
 
-    unset($SESSION->query_updated);
-} else if (isset($SESSION->query_failed)) {
-    $label = get_string($SESSION->query_failed, 'block_up_grade_export');
+    unset($SESSION->export_updated);
+} else if (isset($SESSION->export_failed)) {
+    $label = get_string($SESSION->export_failed, 'block_up_grade_export');
     echo $OUTPUT->notification($label);
 
-    unset($SESSION->query_failed);
+    unset($SESSION->export_failed);
 }
 
-$query_count = $DB->count_records('block_up_export_queries');
-$queries = $DB->get_records('block_up_export_queries', null, 'externalid DESC', '*', $perpage * $page, $perpage);
+$export_count = $DB->count_records('block_up_export_exports');
+$exports = query_exporter::get_all(null, $perpage * $page, $perpage);
 
-$build_url = new moodle_url('/blocks/up_grade_export/build.php');
+$build_url = new moodle_url('/blocks/up_grade_export/build_export.php');
 
-if (empty($query_count)) {
-    echo $OUTPUT->notification(get_string('no_queries', 'block_up_grade_export'));
+if (empty($export_count)) {
+    echo $OUTPUT->notification(get_string('no_exports', 'block_up_grade_export'));
 
     echo $OUTPUT->continue_button($build_url);
     echo $OUTPUT->footer();
@@ -62,18 +66,23 @@ $delete_icon = $OUTPUT->pix_icon('t/delete', $delete_str, 'moodle', array('class
 $export_str = get_string('export', 'block_up_grade_export');
 $export_icon = $OUTPUT->pix_icon('i/backup', $export_str, 'moodle', array('class' => 'icon'));
 
-$edit_link = function($query, $title) use ($edit_str) {
+$query_link = function($query) {
     $url = new moodle_url('/blocks/up_grade_export/build.php', array('id' => $query->id));
+    return html_writer::link($url, $query->get_name());
+};
+
+$edit_link = function($export, $title) use ($edit_str) {
+    $url = new moodle_url('/blocks/up_grade_export/build_export.php', array('id' => $export->id));
     return html_writer::link($url, $title);
 };
 
-$delete_link = function($query) use ($delte_str, $delete_icon) {
-    $url = new moodle_url('/blocks/up_grade_export/delete.php', array('id' => $query->id));
+$delete_link = function($export) use ($delte_str, $delete_icon) {
+    $url = new moodle_url('/blocks/up_grade_export/delete_export.php', array('id' => $export->id));
     return html_writer::link($url, $delete_icon);
 };
 
-$export_link = function($query) use ($export_str, $export_icon) {
-    $url = new moodle_url('/blocks/up_grade_export/export.php', array('id' => $query->id));
+$export_link = function($export) use ($export_str, $export_icon) {
+    $url = new moodle_url('/blocks/up_grade_export/export.php', array('id' => $export->id));
     return html_writer::link($url, $export_icon);
 };
 
@@ -103,7 +112,7 @@ $grade_link = function($item) {
 
 $table = new html_table();
 $table->head = array(
-    get_string('externalid', 'block_up_grade_export'),
+    get_string('query_name', 'block_up_grade_export'),
     get_string('automated', 'block_up_grade_export'),
     get_string('fullname'),
     get_string('itemname', 'grades'),
@@ -113,31 +122,32 @@ $table->head = array(
 $automated_icon = $OUTPUT->pix_icon('i/completion-manual-enabled', '', 'moodle', array('class' => 'icon'));
 $manual_icon = $OUTPUT->pix_icon('i/completion-manual-n', '', 'moodle', array('class' => 'icon'));
 
-foreach ($queries as $query) {
-    $grade_item = grade_item::fetch(array('id' => $query->itemid));
+foreach ($exports as $export) {
+    $query = $export->get_query();
+    $grade_item = $export->get_grade_item();
 
     $line = array();
-    $line[] = $edit_link($query, $query->externalid);
-    $line[] = $query->automated ? $automated_icon : $manual_icon;
+    $line[] = $query ? $query_link($query) : $deleted_str;
+    $line[] = $export->automated ? $automated_icon : $manual_icon;
     $line[] = $grade_item ? $course_link($grade_item) : $deleted_str;
     $line[] = $grade_item ? $grade_link($grade_item) : $deleted_str;
-    $line[] = ($grade_item ? $export_link($query) : $export_icon) . ' '
-            . $edit_link($query, $edit_icon) . ' ' . $delete_link($query);
+    $line[] = ($grade_item ? $export_link($export) : $export_icon) . ' '
+            . $edit_link($export, $edit_icon) . ' ' . $delete_link($export);
 
     $table->data[] = new html_table_row($line);
 }
 
-$list_url = new moodle_url('/blocks/up_grade_export/list.php');
-$pagination = $OUTPUT->paging_bar($query_count, $page, $perpage, $list_url);
+$list_url = new moodle_url('/blocks/up_grade_export/list_exports.php');
+$pagination = $OUTPUT->paging_bar($export_count, $page, $perpage, $list_url);
 
-$build_query_button = new single_button($build_url, get_string('build_query', 'block_up_grade_export'), 'get');
-$build_query_button->class = 'continuebutton';
+$build_export_button = new single_button($build_url, get_string('build_export', 'block_up_grade_export'), 'get');
+$build_export_button->class = 'continuebutton';
 
 echo $pagination;
 echo html_writer::start_tag('div', array('class' => 'query_table'));
 echo html_writer::table($table);
 echo html_writer::end_tag('div');
-echo $OUTPUT->render($build_query_button);
+echo $OUTPUT->render($build_export_button);
 echo $pagination;
 
 echo $OUTPUT->footer();

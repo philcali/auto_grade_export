@@ -48,11 +48,35 @@ abstract class up_grade_handler {
      * @param mixed $data {old_export, new_export}
      */
     public static function export_updated($data) {
-        if ($data->old_export->itemid != $data->new_export->itemid or
-            $data->old_export->queryid != $data->new_export->queryid)  {
+        if ($data->old_export->itemid != $data->new_export->itemid) {
             $data->old_export->wipe_history();
         }
 
+        return true;
+    }
+
+    /**
+     * Cleans up orphaned fields if the query changes
+     *
+     * @param mixed $data {old_query, new_query}
+     */
+    public static function query_updated($data) {
+        global $DB;
+
+        foreach ($data->old_query->get_fields() as $field) {
+            foreach ($data->new_query->get_fields() as $inner_field) {
+                // The new query has this field, skip it
+                if ($field->id === $inner_field->id) continue 2;
+            }
+
+            // This field was not found... delete it
+            $DB->delete_records('block_up_export_fields', array('id' => $field->id));
+        }
+
+        return true;
+    }
+
+    public static function query_deleted($query) {
         return true;
     }
 }

@@ -1,3 +1,15 @@
+.centerbuttons > .left {
+  margin-left: 15%;
+  float: left; }
+
+.centerbuttons > .right {
+  margin-right: 15%;
+  float: right; }
+
+.centerbuttons {
+  width: 30%;
+  margin: auto auto; }
+
 .query_table {
   margin-top: 5px;
   margin-bottom: 5px; }

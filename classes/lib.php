@@ -47,10 +47,10 @@ class query_exporter {
      * @param array $params
      * @return array query_exporter
      */
-    public static function get_all(array $params = null) {
+    public static function get_all(array $params = null, $offset = 0, $limit = 0) {
         global $DB;
 
-        $exports = $DB->get_records('block_up_export_exports', $params);
+        $exports = $DB->get_records('block_up_export_exports', $params, '', '*', $offset, $limit);
 
         $return = array();
         foreach ($exports as $export) {
@@ -61,10 +61,10 @@ class query_exporter {
     }
 
     /**
-     * Gets a single query_connector
+     * Gets a single query_exporter
      *
      * @param array $params
-     * @return query_connector | null
+     * @return query_exporter | null
      */
     public static function get(array $params) {
         return current(self::get_all($params));
@@ -81,21 +81,26 @@ class query_exporter {
     }
 
     /**
-     * Returns the external name of this export
-     *
-     * @return string
-     */
-    public function get_external_name() {
-        return $this->get_query()->get_name();
-    }
-
-    /**
      * Is this export automated?
      *
      * @return boolean
      */
     public function is_automated() {
         return $this->automated;
+    }
+
+    /**
+     * Returns the query associated with this export
+     *
+     * @return oracle_query | null
+     */
+    public function get_query() {
+        if (empty($this->query)) {
+            // TODO: would be nice to de couple this
+            $this->query = oracle_query::get(array('id' => $this->queryid));
+        }
+
+        return $this->query;
     }
 
     /**
@@ -216,7 +221,7 @@ class query_exporter {
             $created = false;
 
             $data = new stdClass;
-            $data->old_export = query_connector::get(array('id' => $this->id));
+            $data->old_export = self::get(array('id' => $this->id));
             $data->new_export = $this;
 
             try {
@@ -273,8 +278,10 @@ class query_exporter {
 
         $historyids = implode(',', array_keys($exports));
 
-        $DB->delete_records_select('block_up_export_items', "historyid IN ($historyids)");
-        $DB->delete_records_select('block_up_export_history', "id in ($historyids)");
+        if ($historyids) {
+            $DB->delete_records_select('block_up_export_items', "historyid IN ($historyids)");
+            $DB->delete_records_select('block_up_export_history', "id IN ($historyids)");
+        }
     }
 
     /**
@@ -300,22 +307,26 @@ class query_exporter {
 
         $users = $data->users;
         $grades = $data->grades;
+        $self = $this;
 
-        $data = $connection->with(function($conn) use ($users, $grades) {
+        $data = $connection->with(function($conn) use ($self, $users, $grades) {
             $successes = array();
             $errors = array();
             foreach ($grades as $grade) {
                 $user = $users[$grade->userid];
 
-                if (empty($grade->finalgrade)) {
-                    continue;
-                }
+                $data = array(
+                    'c' => $self->get_course(),
+                    'gi' => $self->get_grade_item(),
+                    'u' => $user,
+                    'gg' => $grade,
+                );
 
                 $result = new stdClass;
                 $result->userid = $user->id;
                 $result->finalgrade = $grade->finalgrade;
 
-                if ($conn->import($user, $grade)) {
+                if ($conn->import($data)) {
                     $successes[] = $result;
                 } else {
                     $errors[] = $result;

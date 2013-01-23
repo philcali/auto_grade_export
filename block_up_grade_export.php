@@ -166,7 +166,7 @@ class block_up_grade_export extends block_list {
         }
 
         $emaillog = array();
-        $queries = query_connector::get_all(array('automated' => true));
+        $queries = query_exporter::get_all(array('automated' => true));
 
         foreach ($queries as $query) {
             if (!$query->can_pull_grades()) {
@@ -174,11 +174,15 @@ class block_up_grade_export extends block_list {
                 continue;
             }
 
-            $connection = new oracle_connection($query->get_external_name());
+            $connection = $query->get_query();
+
+            if (!$connection) {
+                $emaillog[] = "Query with id {$query->queryid} for course {$query->get_course()->shortname} could not be found.";
+            }
 
             $errors = $query->export_grades($connection);
             if ($errors) {
-                $emaillog[] = sprintf("Query on %s failed for %s on course %d: %d", $query->get_external_name(), $query->get_grade_item()->get_name(), $query->get_course()->shortname, count($errors));
+                $emaillog[] = sprintf("Query on %s failed for %s on course %d: %d", $connection->get_name(), $query->get_grade_item()->get_name(), $query->get_course()->shortname, count($errors));
             }
         }
 

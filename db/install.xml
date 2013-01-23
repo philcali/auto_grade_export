@@ -7,9 +7,9 @@
     <TABLE NAME="block_up_export_queries" COMMENT="Table that represents an oracle query" NEXT="block_up_export_fields">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="name"/>
-        <FIELD NAME="name" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="sql"/>
-        <FIELD NAME="sql" TYPE="text" NOTNULL="true" SEQUENCE="false" PREVIOUS="name" NEXT="created_timestamp"/>
-        <FIELD NAME="created_timestamp" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="sql"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="external"/>
+        <FIELD NAME="external" TYPE="text" NOTNULL="true" SEQUENCE="false" PREVIOUS="name" NEXT="created_timestamp"/>
+        <FIELD NAME="created_timestamp" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="external"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" />
