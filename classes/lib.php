@@ -301,7 +301,7 @@ class query_exporter {
     public function get_last_export($last_success = false) {
         global $DB;
 
-        $params = array();
+        $params = array('exportid' => $this->id);
         if ($last_success) {
             $params['success'] = true;
         }

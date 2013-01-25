@@ -34,12 +34,12 @@ class build_export_form extends moodleform {
         if ($courses) {
             $m->addElement('static', 'page_top', '', $this->_customdata['pagination']);
             foreach ($courses as $course) {
-                $m->addElement('radio', 'selected_course', '', $course->fullname, $course->id);
+                $m->addElement('radio', 'course', '', $course->fullname, $course->id);
             }
             $m->addElement('static', 'page_bottom', '', $this->_customdata['pagination']);
 
-            $m->addRule('selected_course', null, 'required', null, 'client');
-            $m->setType('selected_course', PARAM_INT);
+            $m->addRule('course', null, 'required', null, 'client');
+            $m->setType('course', PARAM_INT);
         }
 
         $grade_seq = $this->_customdata['grade_seq'];
