@@ -24,6 +24,32 @@ class query_exporter {
     public $grades;
 
     /**
+     * Find all of the defined exports by a given course
+     *
+     * @param mixed $course
+     * @return array query_exporter
+     */
+    public static function find_by_course($course) {
+        global $DB;
+
+        $sql = 'SELECT export.*
+         FROM {block_up_export_exports} export,
+              {course} c,
+              {grade_items} gi
+         WHERE gi.id = export.itemid AND gi.courseid = c.id
+           AND c.id = :id AND export.automated = 0';
+
+        $dbs = $DB->get_records_sql($sql, array('id' => $course->id));
+
+        $return = array();
+        foreach ($dbs as $db) {
+            $return[$db->id] = new query_exporter($db);
+        }
+
+        return $return;
+    }
+
+    /**
      * Returns a key => value pair for the build_export form
      *
      * @return array
