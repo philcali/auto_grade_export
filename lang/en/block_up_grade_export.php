@@ -33,12 +33,16 @@ $string['cron_target_desc'] = 'Set a cron time interval at the desired time to r
 $string['cron_interval'] = 'Cron interval';
 $string['cron_interval_desc'] = 'Set a cron interval in seconds.';
 
+$string['mocked_connection'] = 'Mocked connection';
+$string['mocked_connection_desc'] = 'Enable this to use debug connections to verify things work the way they should';
+
 // Query export
 $string['can_pull'] = 'Cannot pull grades for a non-existent grade item.';
 $string['export_to'] = 'Export {$a->name} to {$a->table}';
 $string['export_success'] = 'Successfully exported the grades';
 $string['export_failed'] = 'Export failed for {$a->fullname} with grade {$a->finalgrade}';
 $string['last_export'] = 'Last export occurred on <em>{$a->date}</em>: {$a->status}';
+$string['query_type'] = 'Query type';
 
 // Query builder
 $string['no_query'] = 'Could not find that query.';

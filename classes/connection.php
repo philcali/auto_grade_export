@@ -33,10 +33,8 @@ abstract class moodle_external_config implements external_database {
 
     /**
      * Create a connection with an external id
-     *
-     * @param stdclass $db_item (optional)
      */
-    public function __construct($db_item) {
+    public function __construct() {
         $this->username = self::load_cache('username');
         $this->password = self::load_cache('password');
         $this->host = self::load_cache('host');
@@ -66,10 +64,10 @@ class oracle_query extends moodle_external_config {
     public $created_timestamp;
 
     private $fields;
-    private $error;
 
     // One statement per query
     private $statement;
+    private $to_commit;
 
     /**
      * Simple wrapper around moodle DB and publishes query events
@@ -147,6 +145,9 @@ class oracle_query extends moodle_external_config {
      * @param stdClass $db_item
      */
     public function __construct($db_item) {
+        // loads the cache
+        parent::__construct();
+
         foreach (get_object_vars($db_item) as $field => $value) {
             if (preg_match('/^query_(.+)/', $field, $matches)) {
                 $fieldClass = new stdClass;
@@ -195,6 +196,11 @@ class oracle_query extends moodle_external_config {
         return array();
     }
 
+    /**
+     * Finds all connections that match these params
+     *
+     * @param array $params (Optional
+     */
     public static function get_all(array $params = null) {
         global $DB;
 
@@ -208,6 +214,11 @@ class oracle_query extends moodle_external_config {
         return $return;
     }
 
+    /**
+     * Finds a single connection that matches these params
+     *
+     * @params array $params
+     */
     public static function get(array $params) {
         return current(self::get_all($params));
     }
@@ -216,20 +227,21 @@ class oracle_query extends moodle_external_config {
      * Opens a connection to the database
      */
     public function connect($trigger = false) {
-        unset($this->error);
+        if ($this->is_connected()) {
+            return true;
+        }
 
         $this->resource = oci_connect($this->username, $this->password, $this->host);
-        if (!$this->resource) {
-            $this->error = oci_error();
+        if ($error = $this->get_error()) {
 
             if ($trigger) {
-                throw new Exception($this->error['message']);
+                throw new Exception(sprintf("Message [%s] Code [%d]", $error['message'], $error['code']));
             }
         } else {
             $this->statement = oci_parse($this->resource, $this->external);
         }
 
-        return empty($this->error);
+        return empty($error);
     }
 
     /**
@@ -237,7 +249,7 @@ class oracle_query extends moodle_external_config {
      * @return array
      */
     public function get_error() {
-        return $this->error;
+        return oci_error();
     }
 
     /**
@@ -247,11 +259,20 @@ class oracle_query extends moodle_external_config {
         if ($this->is_connected()) {
             // Execute batched statement and cleanup
             oci_commit($this->resource);
+            if ($error = $this->get_error()) {
+                oci_rollback();
+            }
             oci_free_statement($this->statement);
             oci_close($this->resource);
         }
     }
 
+    /**
+     * Transforms the fields into a key value pair with real data
+     *
+     * @param array $data
+     * @return array
+     */
     public function map_fields($data) {
         $mapped = array();
         foreach ($this->get_fields() as $field) {
@@ -288,7 +309,8 @@ class oracle_query extends moodle_external_config {
         }
 
         try {
-            oci_execute($this->statement, OCI_DEFAULT);
+            $BATCH = defined('OCI_NO_AUTO_COMMIT') ? OCI_NO_AUTO_COMMIT : OCI_DEFAULT;
+            oci_execute($this->statement, $BATCH);
             return true;
         } catch (Exception $e) {
             return false;
@@ -312,8 +334,17 @@ class oracle_query extends moodle_external_config {
     }
 }
 
+/**
+ * This mocked connection can be used to test query building and process
+ */
 class mocked_connection extends oracle_query {
+    /**
+     * @see parent
+     */
     public function connect($trigger = false) {
+        $password = implode('', array_map(function($c) { return '*'; }, str_split($this->password)));
+        mtrace("Connection: {$this->host}:{$this->username}:{$password}\n");
+
         $self = $this;
         $this->resource = function ($data) use ($self) {
             $sql = $self->external;
@@ -325,12 +356,19 @@ class mocked_connection extends oracle_query {
         return true;
     }
 
+    /**
+     * @see parent
+     */
     public function import($data) {
-        mtrace($this->resource->__invoke($data));
+        mtrace($this->resource->__invoke($data) . "\n");
         return true;
     }
 
+    /**
+     * @see parent
+     */
     public function close() {
+        mtrace("Closing connection\n");
         unset($this->resource);
     }
 }

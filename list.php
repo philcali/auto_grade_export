@@ -71,7 +71,9 @@ $delete_link = function($query) use ($delte_str, $delete_icon) {
 };
 
 $export_link = function($query) use ($export_str, $export_icon) {
-    $url = new moodle_url('/blocks/up_grade_export/build_export.php', array('queryid' => $query->id));
+    $url = new moodle_url('/blocks/up_grade_export/build_export.php', array(
+        'queryid' => $query->id,
+    ));
     return html_writer::link($url, $export_icon);
 };
 

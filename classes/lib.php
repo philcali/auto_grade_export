@@ -9,9 +9,11 @@ require_once $CFG->dirroot . '/blocks/up_grade_export/classes/connection.php';
  */
 class query_exporter {
     public $id;
-    public $query;
     public $itemid;
     public $automated;
+
+    // No direct access
+    private $query;
 
     // Cached results
     public $grade_item;
@@ -21,24 +23,18 @@ class query_exporter {
     public $users;
     public $grades;
 
-    public static function find_by_course($course) {
-        global $DB;
+    /**
+     * Returns a key => value pair for the build_export form
+     *
+     * @return array
+     */
+    public static function get_export_types() {
+        $data = new stdClass;
+        $data->types = array();
 
-        $sql = 'SELECT export.*
-          FROM {block_up_export_exports} export,
-               {course} c,
-               {grade_items} gi
-          WHERE gi.id = export.itemid AND gi.courseid = c.id
-            AND c.id = :id AND export.automated = 0';
+        events_trigger('export_entry_types', $data);
 
-        $dbs = $DB->get_records_sql($sql, array('id' => $course->id));
-
-        $return = array();
-        foreach ($dbs as $db) {
-            $return[$db->id] = new query_exporter($db);
-        }
-
-        return $return;
+        return $data->types;
     }
 
     /**
@@ -74,10 +70,16 @@ class query_exporter {
      * Takes an export from the DB
      */
     public function __construct($db_item) {
+        $this->entry = new stdClass;
+
         $this->id = $db_item->id ?: null;
-        $this->queryid = $db_item->queryid ?: null;
         $this->itemid = $db_item->itemid ?: null;
         $this->automated = isset($db_item->automated) ? $db_item->automated : false;
+
+        $this->entry->queryid = $db_item->queryid ?: null;
+
+        // needed for form building :(
+        $this->queryid = $this->entry->queryid;
     }
 
     /**
@@ -90,14 +92,40 @@ class query_exporter {
     }
 
     /**
+     * Sets a query for this export
+     *
+     * @param external_database $connection
+     * @return query_exporter
+     */
+    public function set_query(external_database $connection) {
+        $this->query = $connection;
+        return $this;
+    }
+
+    /**
      * Returns the query associated with this export
      *
-     * @return oracle_query | null
+     * @return external_database | null
      */
     public function get_query() {
+        global $DB;
+
         if (empty($this->query)) {
-            // TODO: would be nice to de couple this
-            $this->query = oracle_query::get(array('id' => $this->queryid));
+            // This can be pluralized in the future
+            $entry = $DB->get_record('block_up_export_entry', array('exportid' => $this->id));
+
+            // Allow external manipulation
+            if ($entry) {
+                $this->entry = $entry;
+                // TODO: this can probably be better
+                $this->entry->type = $DB->get_field('block_up_export_queries', 'type', array('id' => $entry->queryid));
+
+                events_trigger("{$this->entry->type}_entry", $this);
+            }
+
+            if ($this->query and get_config('block_up_grade_export', 'mocked_connection')) {
+                $this->query = new mocked_connection($this->query);
+            }
         }
 
         return $this->query;
@@ -211,26 +239,37 @@ class query_exporter {
         if (empty($this->id)) {
             $created = true;
 
-            try {
-                $this->id = $DB->insert_record('block_up_export_exports', $this);
-                events_trigger('export_created', $this);
-            } catch (Exception $e) {
-                return false;
-            }
+            $this->id = $DB->insert_record('block_up_export_exports', $this);
         } else {
             $created = false;
 
             $data = new stdClass;
             $data->old_export = self::get(array('id' => $this->id));
+            $data->old_export->get_query();
+
             $data->new_export = $this;
 
-            try {
-                $DB->update_record('block_up_export_exports', $this);
-                events_trigger('export_updated', $data);
-            } catch (Exception $e) {
-                return false;
+            $DB->update_record('block_up_export_exports', $this);
+        }
+
+        if ($this->entry->queryid) {
+            $this->entry->exportid = $this->id;
+
+            $db_item = $DB->get_record('block_up_export_entry', array(
+                'exportid' => $this->id,
+            ));
+
+            if (!$db_item) {
+                $this->entry->id = $DB->insert_record('block_up_export_entry', $this->entry);
+            } else {
+                $this->entry->id = $db_item->id;
+                $DB->update_record('block_up_export_entry', $this->entry);
             }
         }
+
+        $created ?
+            events_trigger('export_created', $this) :
+            events_trigger('export_updated', $data);
 
         return true;
     }
@@ -245,7 +284,10 @@ class query_exporter {
 
         try {
             events_trigger('export_deleted', $this);
-            return $DB->delete_records('block_up_export_exports', array('id' => $this->id));
+            return (
+                $DB->delete_records('block_up_export_entry', array('exportid' => $this->id)) &&
+                $DB->delete_records('block_up_export_exports', array('id' => $this->id))
+            );
         } catch (Exception $e) {
             return false;
         }
@@ -347,6 +389,11 @@ class query_exporter {
         return $data->errors;
     }
 
+    /**
+     * Gets the exported items for each history
+     *
+     * @param stdClass $history
+     */
     public function get_exported_items($history) {
         global $DB;
 

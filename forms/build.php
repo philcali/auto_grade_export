@@ -9,6 +9,10 @@ class build_form extends moodleform {
         $m->addElement('hidden', 'id', '');
         $m->addElement('hidden', 'created_timestamp', '');
 
+        // This could eventually be changed or set
+        $m->addElement('hidden', 'type', '');
+        $m->setDefault('type', 'oracle_query');
+
         $m->setType(PARAM_INT);
         $m->setDefault(time());
 

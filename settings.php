@@ -47,4 +47,11 @@ if ($ADMIN->fulltree) {
         $_s('cron_interval_desc'),
         24 * 60 * 60
     ));
+
+    $settings->add(new admin_setting_configcheckbox(
+        'block_up_grade_export/mocked_connection',
+        $_s('mocked_connection'),
+        $_s('mocked_connection_desc'),
+        0
+    ));
 }

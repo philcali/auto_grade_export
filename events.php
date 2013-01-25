@@ -76,7 +76,33 @@ abstract class up_grade_handler {
         return true;
     }
 
+    /**
+     * Place holder for query cleanup
+     */
     public static function query_deleted($query) {
+        global $DB;
+        $DB->delete_records('block_up_export_entry', array('queryid' => $query->id));
+        return true;
+    }
+
+    /**
+     * Instantiate an Oracle query
+     *
+     * @param query_exporter
+     */
+    public static function oracle_query_entry(query_exporter $exporter) {
+        $query = oracle_query::get(array('id' => $exporter->entry->queryid));
+        $exporter->set_query($query);
+        return true;
+    }
+
+    /**
+     * Loads this plugins default export type
+     *
+     * @param $data->types
+     */
+    public static function export_entry_types($data) {
+        $data->types['oracle_query'] = get_string('query_sql', 'block_up_grade_export');
         return true;
     }
 }

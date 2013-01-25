@@ -14,6 +14,8 @@ $events = array(
     'export_deleted',
     'query_deleted',
     'query_updated',
+    'oracle_query_entry',
+    'export_entry_types',
 );
 
 $handlers = array_combine($events, array_map($to_handlers, $events));

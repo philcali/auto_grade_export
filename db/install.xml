@@ -8,14 +8,15 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="name"/>
         <FIELD NAME="name" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="external"/>
-        <FIELD NAME="external" TYPE="text" NOTNULL="true" SEQUENCE="false" PREVIOUS="name" NEXT="created_timestamp"/>
-        <FIELD NAME="created_timestamp" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="external"/>
+        <FIELD NAME="external" TYPE="text" NOTNULL="true" SEQUENCE="false" PREVIOUS="name" NEXT="type"/>
+        <FIELD NAME="type" TYPE="char" LENGTH="100" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="external" NEXT="created_timestamp"/>
+        <FIELD NAME="created_timestamp" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="type"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" />
       </KEYS>
     </TABLE>
-    <TABLE NAME="block_up_export_fields" COMMENT="Table that represent oracle field to Moodle field mappings" NEXT="block_up_export_exports" PREVIOUS="block_up_export_queries">
+    <TABLE NAME="block_up_export_fields" COMMENT="Table that represent oracle field to Moodle field mappings" NEXT="block_up_export_entry" PREVIOUS="block_up_export_queries">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="queryid"/>
         <FIELD NAME="queryid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="external"/>
@@ -26,11 +27,20 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id" />
       </KEYS>
     </TABLE>
-    <TABLE NAME="block_up_export_exports" COMMENT="Table that maps to an external oracle query" NEXT="block_up_export_history" PREVIOUS="block_up_export_fields">
+    <TABLE NAME="block_up_export_entry" COMMENT="Table that maps to queries to exports" NEXT="block_up_export_exports" PREVIOUS="block_up_export_fields">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="queryid"/>
-        <FIELD NAME="queryid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="itemid"/>
-        <FIELD NAME="itemid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="queryid" NEXT="automated"/>
+        <FIELD NAME="queryid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="exportid"/>
+        <FIELD NAME="exportid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" PREVIOUS="queryid"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id" />
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="block_up_export_exports" COMMENT="Table that maps to an export entity" NEXT="block_up_export_history" PREVIOUS="block_up_export_entry">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="itemid"/>
+        <FIELD NAME="itemid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="automated"/>
         <FIELD NAME="automated" TYPE="int" LENGTH="1" NOTNULL="true" SEQUENCE="false" DEFAULT="0" PREVIOUS="itemid"/>
       </FIELDS>
       <KEYS>

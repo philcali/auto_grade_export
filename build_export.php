@@ -35,6 +35,7 @@ if ($exportid) {
     }
 
     if ($queryid) {
+        $export->entry->queryid = $queryid;
         $export->queryid = $queryid;
     }
 }
