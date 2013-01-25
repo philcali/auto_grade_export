@@ -9,7 +9,7 @@ require_login();
 $exportid = optional_param('id', null, PARAM_INT);
 $queryid = optional_param('queryid', null, PARAM_INT);
 $shortname = optional_param('shortname', '', PARAM_TEXT);
-$selected_course = optional_param('course', 0, PARAM_INT);
+$selected_course = optional_param('selected_course', 0, PARAM_INT);
 $clear_course = optional_param('clear_course', 0, PARAM_INT);
 
 $page = optional_param('page', 0, PARAM_INT);
@@ -72,7 +72,10 @@ if ($shortname) {
         $course = current($courses);
         unset($courses);
     } else {
-        $base_url = new moodle_url('/blocks/up_grade_export/build_export.php');
+        $base_url = new moodle_url('/blocks/up_grade_export/build_export.php', array(
+            'queryid' => $queryid,
+            'shortname' => $shortname,
+        ));
         $pagination = $OUTPUT->paging_bar($course_count, $page, $perpage, $base_url);
     }
 
@@ -80,6 +83,7 @@ if ($shortname) {
 }
 
 if ($selected_course) {
+    unset($courses);
     $course = $DB->get_record('course', array('id' => $selected_course));
 }
 
