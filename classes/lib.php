@@ -226,7 +226,7 @@ class query_exporter {
 
         $gradebook_roles = get_config('moodle', 'gradebookroles');
 
-        $this->users = get_role_users(explode($gradebook_roles), $context, false, 'u.*');
+        $this->users = get_role_users(explode(',', $gradebook_roles), $context, false, 'u.*');
 
         return $this->users;
     }
