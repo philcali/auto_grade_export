@@ -14,7 +14,7 @@ $context = empty($courseid) ?
     get_context_instance(CONTEXT_SYSTEM) :
     get_context_instance(CONTEXT_COURSE, $courseid);
 
-$can_build = has_capability('block/up_grade_export::can_build', $context);
+$can_build = has_capability('block/up_grade_export:canbuildquery', $context);
 
 if (!has_capability('block/up_grade_export:canexport', $context)) {
     print_error('no_permission', 'block_up_grade_export');

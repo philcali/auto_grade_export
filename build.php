@@ -43,7 +43,7 @@ if ($sql) {
 
 $form = new build_form(null, array('fields' => $fields));
 
-if ($query) {
+if (isset($query)) {
     $index = 0;
     foreach ($query->get_fields() as $field) {
         $query->{"query_{$field->external}"} = $field->moodle;
@@ -79,9 +79,15 @@ if ($form->is_cancelled()) {
     }
 }
 
-echo $OUTPUT->header();
-echo $OUTPUT->heading($heading);
+$output = $PAGE->get_renderer('block_up_grade_export');
+
+$navigation = new guiding_navigation('build_query');
+
+echo $output->header();
+echo $output->render($navigation);
+
+echo $output->heading($heading);
 
 $form->display();
 
-echo $OUTPUT->footer();
+echo $output->footer();

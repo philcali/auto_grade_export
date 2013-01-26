@@ -21,3 +21,18 @@
 
 .query_table > table.generaltable .deleted {
   color: #A00; }
+
+.up_nav_container {
+  border: 2px solid #ddd;
+  float: left;
+  margin-right: -100px;
+  margin-bottom: 20px;
+  box-shadow: 5px 5px 5px #777;
+  border-radius: 10px; }
+
+.up_nav_container > ul {
+  margin-left: 15px;
+  list-style-type: none; }
+
+.up_nav_container > ul > li.selected:after {
+  content: " \25C0"; }

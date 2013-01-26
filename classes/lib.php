@@ -102,7 +102,7 @@ class query_exporter {
         $this->itemid = $db_item->itemid ?: null;
         $this->automated = isset($db_item->automated) ? $db_item->automated : false;
 
-        $this->entry->queryid = $db_item->queryid ?: null;
+        $this->entry->queryid = isset($db_item->queryid) ? $db_item->queryid : null;
 
         // needed for form building :(
         $this->queryid = $this->entry->queryid;

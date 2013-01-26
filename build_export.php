@@ -91,7 +91,7 @@ if ($clear_course) {
     unset($course);
 }
 
-if ($course) {
+if (isset($course)) {
     require_once $CFG->dirroot . '/grade/lib.php';
 
     $structure = new grade_structure();
@@ -101,14 +101,14 @@ if ($course) {
 }
 
 $form = new build_export_form(basename(__FILE__), array(
-    'course' => $course,
-    'courses' => $courses,
+    'course' => isset($course) ? $course : null,
+    'courses' => isset($courses) ? $courses : null,
     'pagination' => $pagination,
-    'grade_seq' => $grade_seq,
-    'structure' => $structure,
+    'grade_seq' => isset($grade_seq) ? $grade_seq : null,
+    'structure' => isset($structure) ? $structure : null,
 ));
 
-if ($export) {
+if (isset($export)) {
     $form->set_data($export);
 } else if ($queryid) {
     $form->set_data(array('queryid' => $queryid));
@@ -137,9 +137,14 @@ if ($form->is_cancelled()) {
     }
 }
 
-echo $OUTPUT->header();
-echo $OUTPUT->heading($heading);
+$output = $PAGE->get_renderer('block_up_grade_export');
+
+$navigation = new guiding_navigation('build_export');
+
+echo $output->header();
+echo $output->render($navigation);
+echo $output->heading($heading);
 
 $form->display();
 
-echo $OUTPUT->footer();
+echo $output->footer();

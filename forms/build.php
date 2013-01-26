@@ -13,8 +13,8 @@ class build_form extends moodleform {
         $m->addElement('hidden', 'type', '');
         $m->setDefault('type', 'oracle_query');
 
-        $m->setType(PARAM_INT);
-        $m->setDefault(time());
+        $m->setType('created_timestamp', PARAM_INT);
+        $m->setDefault('created_timestamp', time());
 
         $label = get_string('query_header', 'block_up_grade_export');
         $m->addElement('header', 'query_header', $label);

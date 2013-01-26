@@ -36,6 +36,13 @@ $string['cron_interval_desc'] = 'Set a cron interval in seconds.';
 $string['mocked_connection'] = 'Mocked connection';
 $string['mocked_connection_desc'] = 'Enable this to use debug connections to verify things work the way they should';
 
+$string['test_connection'] = 'Test connection';
+$string['test_connection_desc'] = 'You can test your connection by going to by clicking on the following button: {$a}';
+
+$string['test_connection_success'] = 'Great Success!';
+$string['test_connection_failed'] = 'Failed to connect: {$a}';
+$string['test_connection_results'] = 'Connection results';
+
 // Query export
 $string['can_pull'] = 'Cannot pull grades for a non-existent grade item.';
 $string['export_to'] = 'Export {$a->name} to {$a->table}';

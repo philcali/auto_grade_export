@@ -27,8 +27,12 @@ $PAGE->navbar->add($heading);
 $PAGE->set_title("$blockname: $heading");
 $PAGE->set_heading("$blockname: $heading");
 
-echo $OUTPUT->header();
-echo $OUTPUT->heading($heading);
+$output = $PAGE->get_renderer('block_up_grade_export');
+$navigation = new guiding_navigation('list_exports');
+
+echo $output->header();
+echo $output->render($navigation);
+echo $output->heading($heading);
 
 if (isset($SESSION->export_updated)) {
     $label = get_string($SESSION->export_updated, 'block_up_grade_export');
@@ -76,7 +80,7 @@ $edit_link = function($export, $title) use ($edit_str) {
     return html_writer::link($url, $title);
 };
 
-$delete_link = function($export) use ($delte_str, $delete_icon) {
+$delete_link = function($export) use ($delete_str, $delete_icon) {
     $url = new moodle_url('/blocks/up_grade_export/delete_export.php', array('id' => $export->id));
     return html_writer::link($url, $delete_icon);
 };
