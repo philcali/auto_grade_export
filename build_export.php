@@ -61,12 +61,14 @@ $pagination = '';
 $courses = array();
 
 if ($shortname) {
-    $sql_like = $DB->sql_like('shortname', "'%$shortname%'", false);
+    $sql_like = $DB->sql_like('shortname', ":shortname", false);
+    $params = array('shortname' => "%$shortname%");
+
     $offset = $perpage * $page;
     $sort = 'shortname DESC';
 
-    $course_count = $DB->count_records_select('course', $sql_like);
-    $courses = $DB->get_records_select('course', $sql_like, null, $sort, '*', $offset, $perpage);
+    $course_count = $DB->count_records_select('course', $sql_like, $params);
+    $courses = $DB->get_records_select('course', $sql_like, $params, $sort, '*', $offset, $perpage);
 
     if ($course_count === 1) {
         $course = current($courses);
@@ -79,7 +81,9 @@ if ($shortname) {
         $pagination = $OUTPUT->paging_bar($course_count, $page, $perpage, $base_url);
     }
 
-    unset($export->itemid);
+    if (isset($export)) {
+        unset($export->itemid);
+    }
 }
 
 if ($selected_course) {
@@ -120,7 +124,7 @@ if ($form->is_cancelled()) {
     redirect($url);
 } else if ($data = $form->get_data()) {
 
-    if ($data->itemid) {
+    if (isset($data->itemid)) {
         $export = new query_exporter($data);
 
         $success = $export->save($created);
