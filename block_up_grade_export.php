@@ -170,14 +170,15 @@ class block_up_grade_export extends block_list {
 
         foreach ($queries as $query) {
             if (!$query->can_pull_grades()) {
-                $emaillog[] = "Query {$query->get_external_name()} for can find itemid {$query->itemid}";
+                $emaillog[] = "Export with id {$query->id} cannot find grade_item id {$query->itemid}";
                 continue;
             }
 
             $connection = $query->get_query();
 
             if (!$connection) {
-                $emaillog[] = "Query with id {$query->queryid} for course {$query->get_course()->shortname} could not be found.";
+                $emaillog[] = "Export with id {$query->entry->queryid} for course {$query->get_course()->shortname} could not be found.";
+                continue;
             }
 
             $errors = $query->export_grades($connection);
@@ -186,7 +187,7 @@ class block_up_grade_export extends block_list {
             }
         }
 
-        if ($emaillog) {
+        if (!empty($emaillog)) {
             $body = implode("\n", $emaillog);
             $admins = get_admins();
             foreach ($admins as $admin) {
