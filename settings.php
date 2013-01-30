@@ -58,13 +58,12 @@ if ($ADMIN->fulltree) {
     ));
 
     $connection_url = new moodle_url($PAGE->url, array('connect' => 1));
-    $connection_button = new single_button($connection_url, $_s('test_connection'));
-    $connection_button->class = 'continuebutton';
+    $connection_link = html_writer::link($connection_url, $_s('test_connection'));
 
     $settings->add(new admin_setting_heading(
         'block_up_grade_export_test_heading',
         $_s('test_connection'),
-        $_s('test_connection_desc', $OUTPUT->render($connection_button))
+        $_s('test_connection_desc', $connection_link)
     ));
 
     // Kind of a crappy place to put this, but better than nowhere, I suppose
