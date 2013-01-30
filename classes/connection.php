@@ -89,7 +89,7 @@ class oracle_query extends moodle_external_config {
      */
     public function __call($function, $args) {
         if (!isset($this->function_map[$function])) {
-            throw new InvalidArgumentException("$funciton is not an OCI function");
+            throw new InvalidArgumentException("$function is not an OCI function");
         }
 
         if (!function_exists($function)) {
@@ -293,8 +293,8 @@ class oracle_query extends moodle_external_config {
         if ($this->is_connected()) {
             // Execute batched statement and cleanup
             $this->oci_commit($this->resource);
-            if (!$success or $this->get_error()) {
-                $success = $this->oci_rollback($this->resource);
+            if ($this->get_error()) {
+                $this->oci_rollback($this->resource);
             }
             $this->oci_free_statement($this->statement);
             $this->oci_close($this->resource);
