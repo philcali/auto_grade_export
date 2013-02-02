@@ -433,6 +433,13 @@ class query_exporter {
             return $data;
         });
 
+        // initialize our event dataset with failure status
+        if (empty($data)) {
+            $data = new stdClass;
+            $data->results = array();
+            $data->errors = true;
+        }
+
         $data->export = $this;
         $data->userid = $userid;
 

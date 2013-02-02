@@ -83,6 +83,12 @@ if ($export) {
     $errors = $query->export_grades($connection, $USER->id);
     if (empty($errors)) {
         echo $OUTPUT->notification(get_string('export_success', 'block_up_grade_export'), 'notifysuccess');
+    } else if ($errors === true) {
+        $error = new stdClass;
+        $error->fullname = $query->get_course()->fullname;
+        $error->finalgrade = $query->get_grade_item()->get_name();
+
+        echo $OUTPUT->notification(get_string('export_failed', 'block_up_grade_export', $error));
     } else {
         $users = $query->pull_users();
         foreach ($errors as $error) {
@@ -108,6 +114,7 @@ if ($last_export = $query->get_last_export()) {
     if ($last_export->success) {
         echo $OUTPUT->notification($str, 'notifysuccess');
     } else {
+        $last_export = $query->get_last_export(true) ?: $last_export;
         echo $OUTPUT->notification($str);
     }
 }

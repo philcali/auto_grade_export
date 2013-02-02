@@ -385,6 +385,7 @@ class mocked_connection extends oracle_query {
             }
             return $sql;
         };
+
         return true;
     }
 
