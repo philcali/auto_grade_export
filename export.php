@@ -130,8 +130,8 @@ if ($last_export) {
 
 $exported_icon = $OUTPUT->pix_icon('i/completion-manual-enabled', '', 'moodle', array('class' => 'icon'));
 
-foreach ($grades as $grade) {
-    $user = $users[$grade->userid];
+foreach ($users as $user) {
+    $grade = $query->get_grade_for_user($user);
 
     $user_link = new moodle_url('/grade/report/user/index.php', array(
         'id' => $query->get_course()->id,

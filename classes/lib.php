@@ -14,6 +14,7 @@ class query_exporter {
 
     // No direct access
     private $query;
+    private $user_to_grade;
 
     // Cached results
     public $grade_item;
@@ -249,7 +250,32 @@ class query_exporter {
         $userids = array_keys($users);
 
         $this->grades = grade_grade::fetch_users_grades($this->get_grade_item(), $userids);
+
+        $this->user_to_grade = array();
+        foreach ($this->grades as $grade) {
+            $this->user_to_grade[$grade->userid] = $grade;
+        }
+
         return $this->grades;
+    }
+
+    /**
+     * Gets the grade_grade for the Moodle user
+     *
+     * @return grade_grade|null
+     */
+    public function get_grade_for_user($user) {
+        if (isset($this->user_to_grade[$user->id])) {
+            return $this->user_to_grade[$user->id];
+        }
+
+        $grades = grade_grade::fetch_users_grades($this->get_grade_item(), array($user->id));
+        if (empty($grades)) {
+            return null;
+        }
+
+        $this->user_to_grade[$user->id] = current($grades);
+        return $this->user_to_grade[$user->id];
     }
 
     /**
@@ -377,11 +403,11 @@ class query_exporter {
         $grades = $data->grades;
         $self = $this;
 
-        $data = $connection->with(function($conn) use ($self, $users, $grades) {
+        $data = $connection->with(function($conn) use ($self, $users) {
             $successes = array();
             $errors = array();
-            foreach ($grades as $grade) {
-                $user = $users[$grade->userid];
+            foreach ($users as $user) {
+                $grade = $self->get_grade_for_user($user);
 
                 $data = array(
                     'c' => $self->get_course(),
