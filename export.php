@@ -114,7 +114,6 @@ if ($last_export = $query->get_last_export()) {
     if ($last_export->success) {
         echo $OUTPUT->notification($str, 'notifysuccess');
     } else {
-        $last_export = $query->get_last_export(true) ?: $last_export;
         echo $OUTPUT->notification($str);
     }
 }
