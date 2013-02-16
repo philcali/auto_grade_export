@@ -34,6 +34,7 @@ $blockname = get_string('pluginname', 'block_up_grade_export');
 $heading = get_string('export', 'block_up_grade_export');
 
 $PAGE->set_context($context);
+$PAGE->set_url(new moodle_url('/blocks/up_grade_export/export.php'));
 $PAGE->navbar->add($blockname);
 $PAGE->set_title("$blockname: $heading");
 $PAGE->set_heading("$blockname: $heading");

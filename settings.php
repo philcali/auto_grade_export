@@ -15,7 +15,7 @@ if ($ADMIN->fulltree) {
 
     $default_url = new moodle_url('/');
 
-    $settings->add(new admin_setting_configtext(
+    $settings->add(new admin_setting_configtextarea(
         'block_up_grade_export/host',
         $_s('host'),
         $_s('host_desc'),
