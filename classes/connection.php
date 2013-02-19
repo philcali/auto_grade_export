@@ -323,8 +323,9 @@ class oracle_query extends moodle_external_config {
      * @return boolean
      */
     public function import($data) {
-        foreach ($this->map_fields($data) as $external => $value) {
-            oci_bind_by_name($this->statement, $external, $value);
+        $mapped_fields = $this->map_fields($data);
+        foreach ($mapped_fields as $external => $value) {
+            oci_bind_by_name($this->statement, $external, $mapped_fields[$external]);
         }
 
         return oci_execute($this->statement, OCI_NO_AUTO_COMMIT);
