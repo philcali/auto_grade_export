@@ -47,7 +47,7 @@ if ($courseid) {
 } else {
     $back_url = new moodle_url('/blocks/up_grade_export/list_exports.php');
 
-    $PAGE->navbar->add(get_string('list_queries', 'block_up_grade_export'), $back_url);
+    $PAGE->navbar->add(get_string('list_exports' ,'block_up_grade_export'), $back_url);
 }
 
 $PAGE->navbar->add($heading);
