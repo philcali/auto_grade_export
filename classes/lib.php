@@ -420,6 +420,10 @@ class query_exporter {
                 $result->userid = $user->id;
                 $result->finalgrade = $grade->finalgrade;
 
+                if (is_null($result->finalgrade)) {
+                    continue;
+                }
+
                 if ($conn->import($data)) {
                     $successes[] = $result;
                 } else {
