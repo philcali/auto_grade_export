@@ -18,7 +18,7 @@ $blockname = get_string('pluginname', 'block_up_grade_export');
 $heading = get_string('list_queries', 'block_up_grade_export');
 
 $PAGE->set_context($context);
-$PAGE->set_ur(new moodle_url('/blocks/up_grade_export/list.php'));
+$PAGE->set_url(new moodle_url('/blocks/up_grade_export/list.php'));
 $PAGE->navbar->add($blockname);
 $PAGE->navbar->add($heading);
 $PAGE->set_title("$blockname: $heading");

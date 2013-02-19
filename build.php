@@ -30,7 +30,7 @@ $manage_str = get_string('list_queries', 'block_up_grade_export');
 $manage_url = new moodle_url('/blocks/up_grade_export/list.php');
 
 $PAGE->set_context($context);
-$PAGE->set_ur(new moodle_url('/blocks/up_grade_export/build.php'));
+$PAGE->set_url(new moodle_url('/blocks/up_grade_export/build.php'));
 $PAGE->navbar->add($blockname);
 $PAGE->navbar->add($manage_str, $manage_url);
 $PAGE->navbar->add($heading);
