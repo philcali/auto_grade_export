@@ -120,6 +120,22 @@ class block_up_grade_export extends block_list {
     }
 
     /**
+     * Gets zoned DateTime from Moodle config
+     *
+     * @return DateTime
+     */
+    private function get_zonedtime() {
+        $timezone = get_config('moodle', 'timezone');
+
+        // Attempt to pull the chosen timezone
+        try {
+            return new DateTime("now", new DateTimeZone($timezone));
+        } catch (Exception $e) {
+            return new DateTime();
+        }
+    }
+
+    /**
      * Checks to see if cron run within configured params
      *
      * @param DateTime $now
@@ -139,10 +155,10 @@ class block_up_grade_export extends block_list {
 
         list($start, $end) = preg_split('/\s*\-\s*/', $cron_target);
 
-        $start_time = new DateTime();
+        $start_time = $this->get_zonedtime();
         $start_time->setTime($start, 0, 0);
 
-        $end_time = new DateTime();
+        $end_time = $this->get_zonedtime();
         $end_time->setTime($end, 0, 0);
 
         if ($now < $start_time || $now > $end_time) {
@@ -159,7 +175,7 @@ class block_up_grade_export extends block_list {
     public function cron() {
         global $CFG;
 
-        $now = new DateTime();
+        $now = $this->get_zonedtime();
 
         if (!$this->is_cron_ready($now)) {
             return false;
