@@ -67,7 +67,39 @@ class oracle_query extends moodle_external_config {
 
     // One statement per query
     private $statement;
-    private $to_commit;
+
+    // @TODO: Remove these terrible hacks once on php 5.4 and OCI 1.0.0
+    private static $function_map = array(
+        'oci_bind_by_name' => 'ocibindbyname',
+        'oci_close' => 'ocilogoff',
+        'oci_commit' => 'ocicommit',
+        'oci_connect' => 'ocilogon',
+        'oci_error' => 'ocierror',
+        'oci_execute' => 'ociexecute',
+        'oci_free_statement' => 'ocifreecursor',
+        'oci_parse' => 'ociparse',
+        'oci_rollback' => 'ocirollback',
+    );
+
+    /**
+     * This maps the above oci function calls to the deprecated versions
+     *
+     * NOTE: This is to be remove and replaced by the actual functions
+     */
+    public function __call($function, $args) {
+        if (!isset(self::$function_map[$function])) {
+            throw new InvalidArgumentException("$function is not an OCI function");
+        }
+
+        if (!function_exists($function)) {
+            $function = self::$function_map[$function];
+        }
+
+        return call_user_func_array($function, $args);
+    }
+
+    // End of terrible hack
+
 
     /**
      * Simple wrapper around moodle DB and publishes query events
@@ -244,14 +276,14 @@ class oracle_query extends moodle_external_config {
             return true;
         }
 
-        $this->resource = oci_connect($this->username, $this->password, $this->host);
+        $this->resource = $this->oci_connect($this->username, $this->password, $this->host);
         if ($error = $this->get_error()) {
 
             if ($trigger) {
                 throw new Exception(sprintf("Message [%s] Code [%d]", $error['message'], $error['code']));
             }
         } else {
-            $this->statement = oci_parse($this->resource, $this->external);
+            $this->statement = $this->oci_parse($this->resource, $this->external);
         }
 
         return empty($error);
@@ -262,7 +294,7 @@ class oracle_query extends moodle_external_config {
      * @return false|array
      */
     public function get_error() {
-        return oci_error();
+        return $this->oci_error();
     }
 
     /**
@@ -273,13 +305,13 @@ class oracle_query extends moodle_external_config {
     public function close() {
         if ($this->is_connected()) {
             // Execute batched statement and cleanup
-            oci_commit($this->resource);
+            $this->oci_commit($this->resource);
             if ($this->get_error()) {
-                oci_rollback($this->resource);
+                $this->oci_rollback($this->resource);
             }
 
-            oci_free_statement($this->statement);
-            oci_close($this->resource);
+            $this->oci_free_statement($this->statement);
+            $this->oci_close($this->resource);
             unset($this->resource);
         }
 
@@ -325,10 +357,10 @@ class oracle_query extends moodle_external_config {
     public function import($data) {
         $mapped_fields = $this->map_fields($data);
         foreach ($mapped_fields as $external => $value) {
-            oci_bind_by_name($this->statement, $external, $mapped_fields[$external]);
+            $this->oci_bind_by_name($this->statement, $external, $mapped_fields[$external]);
         }
 
-        return oci_execute($this->statement, OCI_NO_AUTO_COMMIT);
+        return $this->oci_execute($this->statement, OCI_NO_AUTO_COMMIT);
     }
 
     /**

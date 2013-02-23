@@ -1,6 +1,7 @@
 <?php
 
 $string['pluginname'] = 'Grade export';
+$string['up_grade_export'] = 'Up Grade export';
 $string['pluginname_desc'] = 'This plugin will export grades from an external Oracle database from custom queries';
 
 // Block Strings
@@ -16,6 +17,8 @@ $string['no_permission'] = 'You do not have permission to build an export query'
 // Capabilities
 $string['up_grade_export:canbuildquery'] = 'Allows users to build queries to import grades';
 $string['up_grade_export:canexport'] = 'Allows users to export grades from built queries';
+$string['up_grade_export:addinstance'] = 'Add a Grade export block';
+$string['up_grade_export:myaddinstance'] = 'Add a Grade export block to the my page';
 
 // Settings
 $string['host'] = 'Host';
