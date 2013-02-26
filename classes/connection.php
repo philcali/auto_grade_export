@@ -70,7 +70,6 @@ class oracle_query extends moodle_external_config {
 
     // @TODO: Remove these terrible hacks once on php 5.4 and OCI 1.0.0
     private static $function_map = array(
-        'oci_bind_by_name' => 'ocibindbyname',
         'oci_close' => 'ocilogoff',
         'oci_commit' => 'ocicommit',
         'oci_connect' => 'ocilogon',
@@ -355,12 +354,15 @@ class oracle_query extends moodle_external_config {
      * @return boolean
      */
     public function import($data) {
+        $bind_function = function_exists('oci_bind_by_name') ? 'oci_bind_by_name' : 'ocibindbyname';
+
         $mapped_fields = $this->map_fields($data);
         foreach ($mapped_fields as $external => $value) {
-            $this->oci_bind_by_name($this->statement, $external, $mapped_fields[$external]);
+            $bind_function($this->statement, $external, $mapped_fields[$external]);
         }
 
-        return $this->oci_execute($this->statement, OCI_NO_AUTO_COMMIT);
+        $BATCH = defined('OCI_NO_AUTO_COMMIT') ? OCI_NO_AUTO_COMMIT : OCI_DEFAULT;
+        return $this->oci_execute($this->statement, $BATCH);
     }
 
     /**
