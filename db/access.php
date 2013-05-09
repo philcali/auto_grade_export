@@ -1,7 +1,7 @@
 <?php
 
 $capabilities = array(
-    'block/up_grade_export::myaddinstance' => array(
+    'block/up_grade_export:myaddinstance' => array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes' => array(
